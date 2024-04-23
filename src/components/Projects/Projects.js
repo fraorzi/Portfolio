@@ -1,8 +1,7 @@
 import { Container, Row, Col, Tab, Nav } from "react-bootstrap";
 import { ProjectCard } from "../ProjectCard/ProjectCard";
-import projImg1 from "../../assets/img/project-img1.png";
-import projImg2 from "../../assets/img/project-img2.png";
-import projImg3 from "../../assets/img/project-img3.png";
+import upcomingProject from "../../assets/img/upcomingProject.jpg";
+import Brainwave from "../../assets/img/Brainwave.jpg";
 import colorSharp2 from "../../assets/img/color-sharp2.png";
 import 'animate.css';
 import TrackVisibility from 'react-on-screen';
@@ -11,19 +10,20 @@ export const Projects = () => {
 
   const projects = [
     {
-      title: "Business Startup",
-      description: "Design & Development",
-      imgUrl: projImg1,
+      title: "Brainwave",
+      description: "Modern UI/UX website",
+      imgUrl: Brainwave,
+      githubUrl: 'https://github.com/fraorzi/AI_Website'
     },
     {
-      title: "Business Startup",
-      description: "Design & Development",
-      imgUrl: projImg2,
+      title: "Upcoming Project",
+      description: "To be established",
+      imgUrl: upcomingProject,
     },
     {
-      title: "Business Startup",
-      description: "Design & Development",
-      imgUrl: projImg3,
+      title: "Upcoming Project",
+      description: "To be established",
+      imgUrl: upcomingProject,
     },
     
   ];
@@ -65,7 +65,7 @@ export const Projects = () => {
                         }
                       </Row>
                     </Tab.Pane>
-                    <Tab.Pane eventKey="section">
+                    <Tab.Pane eventKey="second">
                       <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Cumque quam, quod neque provident velit, rem explicabo excepturi id illo molestiae blanditiis, eligendi dicta officiis asperiores delectus quasi inventore debitis quo.</p>
                     </Tab.Pane>
                     <Tab.Pane eventKey="third">
