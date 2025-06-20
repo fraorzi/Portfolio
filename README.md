@@ -85,20 +85,6 @@ These features are not required but can be added as your project grows:
 
 ---
 
-## ❓ FAQ
-
-### What is CommitLint?
-
-A tool that validates your commit messages against a convention, improving changelog generation and CI workflows.
-
-### What are a11y lint errors?
-
-Accessibility issues flagged by `eslint-plugin-jsx-a11y`, such as missing image alt attributes or invalid ARIA roles.
-
-### Do I need SSG for a simple landing page?
-
-Not necessarily. A basic client-side render with good meta tags and semantic HTML often suffices. SSG is most useful when you have multiple pages or need top-tier SEO.
-
 ---
 
 ## ❤️ License
