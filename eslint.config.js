@@ -4,6 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 import better from 'eslint-plugin-better-tailwindcss';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 // Extract recommended better-tailwindcss settings and rules
 const { rules: betterRules, settings: betterSettings } =
@@ -27,6 +28,7 @@ export default tseslint.config(
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
       'better-tailwindcss': better,
+      'jsx-a11y': jsxA11y,
     },
 
     // Merge rules from React Hooks and Better-Tailwindcss
@@ -37,6 +39,7 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       ...betterRules,
+      ...jsxA11y.configs.recommended.rules,
     },
 
     // Combine Better-Tailwindcss settings with entryPoint override
