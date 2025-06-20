@@ -76,10 +76,8 @@ vite-react-ts-tailwind-starter/
 
 ## 🔧 Optional Enhancements
 
-These features are not required but can be added as your project grows:
+These features are not required but can be added:
 
-- **CommitLint**: enforce Conventional Commits (feat/, fix/, chore/, etc.)
-- **JSX-A11y**: `eslint-plugin-jsx-a11y` for basic accessibility checks (alt text, ARIA roles)
 - **Vitest**: unit and integration testing with `@testing-library/react`
 - **Static-Site Generation**: prerender HTML for improved SEO/performance
 
