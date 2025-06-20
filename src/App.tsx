@@ -1,9 +1,14 @@
+import Container from '@components/Container/Container';
+
 export default function App() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-500">
-      <h1 className="pb-10 text-center text-3xl font-bold text-gray-900">
-        Start!
-      </h1>
-    </div>
+    <Container>
+      <h1 className="text-4xl font-bold">Witaj na moim portfolio</h1>
+      <h1 className="text-4xl font-bold">Witaj na moim portfolio</h1>
+      <h1 className="text-4xl font-bold">Witaj na moim portfolio</h1>
+      <h1 className="text-4xl font-bold">Witaj na moim portfolio</h1>
+      <h1 className="text-4xl font-bold">Witaj na moim portfolio</h1>
+      <h1 className="text-4xl font-bold">Witaj na moim portfolio</h1>
+    </Container>
   );
 }
