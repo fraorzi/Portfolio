@@ -29,7 +29,7 @@ export function LoadingScreen() {
           >
             <span className="bg-primary-500 block size-2 rounded-full" />
             <span className="font-display text-md tracking-tight">
-              Franek Orzechowski
+              Franciszek Orzechowski
             </span>
           </motion.div>
         </motion.div>

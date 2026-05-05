@@ -1,4 +1,4 @@
-# Portfolio — Franek Orzechowski
+# Portfolio — Franciszek Orzechowski
 
 One-page portfolio. React 19 + TypeScript + Tailwind v4 + Vite. Animations: Motion, GSAP/ScrollTrigger, Lenis, R3F (Three.js).
 

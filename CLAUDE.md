@@ -1,4 +1,4 @@
-# Portfolio — Franek Orzechowski
+# Portfolio — Franciszek Orzechowski
 
 This file is the source of truth for design direction and engineering conventions in this repo. Read it before making changes.
 
@@ -6,7 +6,7 @@ This file is the source of truth for design direction and engineering convention
 
 ## 1. Project goal
 
-A **one-page personal portfolio** for Franek Orzechowski — front-end developer with backend experience.
+A **one-page personal portfolio** for Franciszek Orzechowski — front-end developer with backend experience.
 
 The site must feel:
 
