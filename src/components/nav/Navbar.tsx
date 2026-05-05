@@ -40,7 +40,7 @@ export function Navbar() {
           href="#hero"
           className="font-display text-md text-ink tracking-tight"
         >
-          Franek Orzechowski
+          Franciszek Orzechowski
         </a>
 
         <ul className="hidden items-center gap-7 md:flex">

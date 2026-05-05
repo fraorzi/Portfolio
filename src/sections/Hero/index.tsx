@@ -18,8 +18,8 @@ export function Hero() {
           view.
         </h1>
         <p className="text-paper/70 mt-6 max-w-[44ch] text-sm">
-          Portfolio of Franek Orzechowski — selected work, process, and how I
-          think about the web.
+          Portfolio of Franciszek Orzechowski — selected work, process, and how
+          I think about the web.
         </p>
         <div className="mt-10 flex items-center gap-3">
           <a
