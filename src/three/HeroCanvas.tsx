@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { HeroScene } from './HeroScene';
+import { SceneParticleConstellation } from './scenes/SceneParticleConstellation';
 
 export function HeroCanvas() {
   return (
@@ -11,7 +11,7 @@ export function HeroCanvas() {
       camera={{ position: [0, 0, 6], fov: 40 }}
     >
       <Suspense fallback={null}>
-        <HeroScene />
+        <SceneParticleConstellation />
       </Suspense>
     </Canvas>
   );
