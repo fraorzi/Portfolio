@@ -68,12 +68,18 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    scrollbar-width: none;
   }
 
   body {
     @apply text-base;
     margin: 0;
     overflow-x: hidden;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
   }
 
   h1,
