@@ -1,29 +1,50 @@
 import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
+import {
+  LOADING_SCREEN_SCROLL_DURATION,
+  LOADING_SCREEN_SCROLL_EASE,
+} from '@/components/loading/constants';
 
 const TRAIL_LENGTH = '42vh';
+const NAME_TRAIL_GAP = '64px';
+const NAME_DESCENT = `calc(${TRAIL_LENGTH} + ${NAME_TRAIL_GAP})`;
 const DESCENT_DURATION = 0.85;
 const DESCENT_EASE = [0.5, 0, 0.75, 0] as const;
-const CURTAIN_EASE = [0.76, 0, 0.24, 1] as const;
+const EXIT_START_MS = 2050;
+const COMPLETE_MS = 3025;
 
 type Stage = 0 | 1 | 2 | 3;
 
-export function LoadingScreen() {
+type LoadingScreenProps = {
+  onComplete?: () => void;
+  onExitStart?: () => void;
+};
+
+export function LoadingScreen({ onComplete, onExitStart }: LoadingScreenProps) {
   const [stage, setStage] = useState<Stage>(0);
   const reduced = useReducedMotion();
 
   useEffect(() => {
     if (reduced) {
-      const t = window.setTimeout(() => setStage(3), 1600);
+      const t = window.setTimeout(() => {
+        setStage(3);
+        onComplete?.();
+      }, 1600);
       return () => window.clearTimeout(t);
     }
     const timers = [
       window.setTimeout(() => setStage(1), 1100),
-      window.setTimeout(() => setStage(2), 2050),
-      window.setTimeout(() => setStage(3), 2800),
+      window.setTimeout(() => {
+        setStage(2);
+        onExitStart?.();
+      }, EXIT_START_MS),
+      window.setTimeout(() => {
+        setStage(3);
+        onComplete?.();
+      }, COMPLETE_MS),
     ];
     return () => timers.forEach((t) => window.clearTimeout(t));
-  }, [reduced]);
+  }, [onComplete, onExitStart, reduced]);
 
   if (stage === 3) return null;
 
@@ -49,8 +70,11 @@ export function LoadingScreen() {
     <motion.div
       className="bg-ink fixed inset-0 z-[100] overflow-hidden"
       initial={{ y: 0 }}
-      animate={{ y: stage >= 2 ? '-100%' : 0 }}
-      transition={{ duration: 0.75, ease: CURTAIN_EASE }}
+      animate={{ y: stage >= 2 ? '-100svh' : 0 }}
+      transition={{
+        duration: LOADING_SCREEN_SCROLL_DURATION,
+        ease: LOADING_SCREEN_SCROLL_EASE,
+      }}
     >
       <motion.div
         aria-hidden
@@ -87,7 +111,7 @@ export function LoadingScreen() {
           initial={{ opacity: 0, y: 8 }}
           animate={{
             opacity: 1,
-            y: stage >= 1 ? TRAIL_LENGTH : 0,
+            y: stage >= 1 ? NAME_DESCENT : 0,
           }}
           transition={{
             opacity: { duration: 0.5, ease: [0.19, 1, 0.22, 1] },
