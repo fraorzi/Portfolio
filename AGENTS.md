@@ -189,7 +189,12 @@ Inspired by [floema.com/en](https://floema.com/en):
 - Reserve `refactor:` for actual code restructuring.
 - **Never** add `Co-Authored-By:` lines.
 
-### 4.6 Pre-commit
+### 4.6 Branches
+
+- Branch names should be short, descriptive, slash-separated, and **must not** use the `codex/` prefix.
+  Example: `fix/loading-scroll-hero`, not `fix-loading-scroll-hero`.
+
+### 4.7 Pre-commit
 
 - `bunx lint-staged` runs ESLint --fix and Prettier on staged files.
 - `bunx commitlint` validates the commit message.

@@ -9,7 +9,7 @@ export function Hero() {
     >
       <HeroCanvas />
 
-      <div className="container-page relative z-10">
+      <div className="container-page pointer-events-none relative z-10">
         <p className="text-2xs text-paper/60 tracking-[0.32em] uppercase">
           Front-end developer · PL
         </p>
@@ -21,23 +21,23 @@ export function Hero() {
           Portfolio of Franciszek Orzechowski — selected work, process, and how
           I think about the web.
         </p>
-        <div className="mt-10 flex items-center gap-3">
+        <div className="pointer-events-none mt-10 flex items-center gap-3">
           <a
             href="#projects"
-            className="bg-primary-600 text-2xs text-paper hover:bg-primary-500 rounded-full px-5 py-2 tracking-[0.18em] uppercase transition-colors"
+            className="bg-primary-600 text-2xs text-paper hover:bg-primary-500 pointer-events-auto rounded-full px-5 py-2 tracking-[0.18em] uppercase transition-colors"
           >
             View work
           </a>
           <a
             href="#contact"
-            className="border-paper/20 text-2xs text-paper hover:border-paper/60 rounded-full border px-5 py-2 tracking-[0.18em] uppercase transition-colors"
+            className="border-paper/20 text-2xs text-paper hover:border-paper/60 pointer-events-auto rounded-full border px-5 py-2 tracking-[0.18em] uppercase transition-colors"
           >
             Get in touch
           </a>
         </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-6 z-10 flex justify-center">
+      <div className="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex justify-center">
         <span className="text-2xs text-paper/40 tracking-[0.32em] uppercase">
           Scroll
         </span>
