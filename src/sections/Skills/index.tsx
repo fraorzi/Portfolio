@@ -1,4 +1,6 @@
+import { useRef } from 'react';
 import { Section } from '@/components/ui/Section';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 const groups = [
   {
@@ -20,14 +22,23 @@ const groups = [
 ];
 
 export function Skills() {
+  const ref = useRef<HTMLDivElement>(null);
+  useScrollReveal(ref);
+
   return (
     <Section id="skills" theme="dark">
-      <div className="grid gap-12 md:grid-cols-12">
+      <div ref={ref} className="grid gap-12 md:grid-cols-12">
         <div className="md:col-span-4">
-          <p className="text-2xs text-paper/50 tracking-[0.32em] uppercase">
+          <p
+            data-reveal
+            className="text-2xs text-paper/50 tracking-[0.32em] uppercase"
+          >
             04 — Stack
           </p>
-          <h2 className="text-paper mt-6 text-2xl leading-tight tracking-tight">
+          <h2
+            data-reveal
+            className="text-paper mt-6 text-2xl leading-tight tracking-tight"
+          >
             Tools I reach for
           </h2>
         </div>
@@ -36,6 +47,7 @@ export function Skills() {
           {groups.map((g) => (
             <div
               key={g.label}
+              data-reveal
               className="border-paper/10 grid grid-cols-1 gap-3 border-t pt-6 md:grid-cols-[140px_1fr]"
             >
               <p className="text-2xs text-paper/50 tracking-[0.24em] uppercase">

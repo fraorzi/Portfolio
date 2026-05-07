@@ -1,23 +1,34 @@
+import { useRef } from 'react';
 import { Section } from '@/components/ui/Section';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 export function Contact() {
+  const ref = useRef<HTMLDivElement>(null);
+  useScrollReveal(ref);
+
   return (
     <Section id="contact" theme="dark">
-      <div className="grid gap-12 md:grid-cols-12">
+      <div ref={ref} className="grid gap-12 md:grid-cols-12">
         <div className="md:col-span-5">
-          <p className="text-2xs text-paper/50 tracking-[0.32em] uppercase">
+          <p
+            data-reveal
+            className="text-2xs text-paper/50 tracking-[0.32em] uppercase"
+          >
             06 — Contact
           </p>
-          <h2 className="text-paper mt-6 text-2xl leading-tight tracking-tight">
+          <h2
+            data-reveal
+            className="text-paper mt-6 text-2xl leading-tight tracking-tight"
+          >
             Let's build something
             <br />
             considered together.
           </h2>
-          <p className="text-paper/70 mt-6 max-w-[40ch] text-sm">
+          <p data-reveal className="text-paper/70 mt-6 max-w-[40ch] text-sm">
             Available for select front-end and product work. Reply within a day
             or two.
           </p>
-          <ul className="text-paper mt-8 space-y-2 text-sm">
+          <ul data-reveal className="text-paper mt-8 space-y-2 text-sm">
             <li>
               <a
                 href="mailto:orzechowskifranek@gmail.com"
@@ -44,6 +55,7 @@ export function Contact() {
           method="POST"
           data-netlify="true"
           netlify-honeypot="bot-field"
+          data-reveal
           className="space-y-5 md:col-span-7"
         >
           <input type="hidden" name="form-name" value="contact" />
