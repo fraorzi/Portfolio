@@ -7,6 +7,7 @@ import {
 } from '@/components/loading/constants';
 import { Navbar } from '@/components/nav/Navbar';
 import { SmoothScrollProvider } from '@/lib/lenis';
+import { ScrollTrigger } from '@/lib/gsap';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { Hero } from '@/sections/Hero';
 import { About } from '@/sections/About';
@@ -41,6 +42,12 @@ export default function App() {
       document.body.style.overflow = previousBodyOverflow;
     };
   }, [introVisible]);
+
+  useEffect(() => {
+    if (introPhase !== 'done') return;
+    const id = window.requestAnimationFrame(() => ScrollTrigger.refresh());
+    return () => window.cancelAnimationFrame(id);
+  }, [introPhase]);
 
   return (
     <SmoothScrollProvider>

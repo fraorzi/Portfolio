@@ -1,4 +1,6 @@
+import { useRef } from 'react';
 import { Section } from '@/components/ui/Section';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 const steps = [
   {
@@ -24,14 +26,23 @@ const steps = [
 ];
 
 export function Process() {
+  const ref = useRef<HTMLDivElement>(null);
+  useScrollReveal(ref);
+
   return (
     <Section id="process" theme="light">
-      <div className="grid gap-12 md:grid-cols-12">
+      <div ref={ref} className="grid gap-12 md:grid-cols-12">
         <div className="md:col-span-4">
-          <p className="text-2xs text-ink/50 tracking-[0.32em] uppercase">
+          <p
+            data-reveal
+            className="text-2xs text-ink/50 tracking-[0.32em] uppercase"
+          >
             05 — Process
           </p>
-          <h2 className="text-ink mt-6 text-2xl leading-tight tracking-tight">
+          <h2
+            data-reveal
+            className="text-ink mt-6 text-2xl leading-tight tracking-tight"
+          >
             How I work
           </h2>
         </div>
@@ -40,6 +51,7 @@ export function Process() {
           {steps.map((s) => (
             <li
               key={s.n}
+              data-reveal
               className="border-ink/10 grid grid-cols-[60px_1fr] items-start gap-6 border-t py-6 first:border-t-0"
             >
               <span className="font-display text-primary-600 text-sm tracking-tight">

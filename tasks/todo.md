@@ -36,7 +36,7 @@ Living plan. Update as things land or new ideas drop in. Tick `[x]` when done.
 
 ### Animacje (subtle, po hero)
 
-- [ ] GSAP ScrollTrigger reveals na każdej sekcji (mały `y` + opacity fade)
+- [x] GSAP ScrollTrigger reveals na każdej sekcji (mały `y` + opacity fade)
 - [ ] Hover transitions polish na project cards (są bazowo, dopieścić)
 - [ ] Opcjonalny pin/scrub gdzieś dla rytmu
 
@@ -88,3 +88,4 @@ Living plan. Update as things land or new ideas drop in. Tick `[x]` when done.
 Krótkie podsumowanie po każdej zamkniętej partii. Format: `YYYY-MM-DD — co zrobione`.
 
 - 2026-05-07 — Reconstructed plan into living todo.md
+- 2026-05-07 — GSAP ScrollTrigger reveals: `lib/gsap.ts`, Lenis↔ScrollTrigger sync via gsap ticker, `useScrollReveal` hook, applied `data-reveal` to About/Services/Projects/Skills/Process/Contact
