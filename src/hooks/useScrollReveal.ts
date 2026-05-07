@@ -17,9 +17,9 @@ export function useScrollReveal<T extends HTMLElement>(
   {
     selector = '[data-reveal]',
     y = 24,
-    duration = 0.9,
-    stagger = 0.08,
-    start = 'top 85%',
+    duration = 1.1,
+    stagger = 0.1,
+    start = 'top 75%',
     ease = 'power3.out',
     delay = 0,
   }: Options = {},

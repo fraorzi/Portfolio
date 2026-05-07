@@ -79,7 +79,7 @@ export function SceneParticleConstellation() {
 
   return (
     <group ref={groupRef}>
-      <mesh onClick={handleBurst}>
+      <mesh onPointerDown={handleBurst}>
         <sphereGeometry args={[2.4, 16, 16]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { LoadingScreen } from '@/components/loading/LoadingScreen';
 import {
@@ -20,24 +20,63 @@ import { Footer } from '@/sections/Footer';
 
 type IntroPhase = 'active' | 'exiting' | 'done';
 
+const INTRO_STORAGE_KEY = 'portfolio:intro-seen';
+
+function canUseSessionStorage() {
+  try {
+    window.sessionStorage.getItem(INTRO_STORAGE_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function hasSeenIntro() {
+  if (!canUseSessionStorage()) return false;
+  return window.sessionStorage.getItem(INTRO_STORAGE_KEY) === 'true';
+}
+
+function markIntroSeen() {
+  if (!canUseSessionStorage()) return;
+  window.sessionStorage.setItem(INTRO_STORAGE_KEY, 'true');
+}
+
+function getInitialIntroPhase(): IntroPhase {
+  if (window.location.hash) return 'done';
+  return hasSeenIntro() ? 'done' : 'active';
+}
+
 export default function App() {
-  const [introPhase, setIntroPhase] = useState<IntroPhase>('active');
+  const [introPhase, setIntroPhase] =
+    useState<IntroPhase>(getInitialIntroPhase);
   const reduced = useReducedMotion();
   const introVisible = introPhase !== 'done';
 
   const handleExitStart = useCallback(() => setIntroPhase('exiting'), []);
-  const handleComplete = useCallback(() => setIntroPhase('done'), []);
+  const handleComplete = useCallback(() => {
+    markIntroSeen();
+    setIntroPhase('done');
+  }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!introVisible) return;
 
+    markIntroSeen();
+    const previousScrollRestoration = window.history.scrollRestoration;
     const previousHtmlOverflow = document.documentElement.style.overflow;
     const previousBodyOverflow = document.body.style.overflow;
+    window.history.scrollRestoration = 'manual';
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    });
 
     return () => {
+      window.cancelAnimationFrame(frame);
+      window.history.scrollRestoration = previousScrollRestoration;
       document.documentElement.style.overflow = previousHtmlOverflow;
       document.body.style.overflow = previousBodyOverflow;
     };
@@ -45,19 +84,22 @@ export default function App() {
 
   useEffect(() => {
     if (introPhase !== 'done') return;
+    markIntroSeen();
     const id = window.requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => window.cancelAnimationFrame(id);
   }, [introPhase]);
 
   return (
     <SmoothScrollProvider>
-      <LoadingScreen
-        onComplete={handleComplete}
-        onExitStart={handleExitStart}
-      />
+      {introVisible ? (
+        <LoadingScreen
+          onComplete={handleComplete}
+          onExitStart={handleExitStart}
+        />
+      ) : null}
       <motion.div
         aria-hidden={introVisible}
-        className="min-h-screen"
+        className="bg-ink min-h-screen"
         inert={introVisible ? true : undefined}
         initial={false}
         animate={{
