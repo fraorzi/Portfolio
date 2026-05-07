@@ -42,7 +42,6 @@ function markIntroSeen() {
 }
 
 function getInitialIntroPhase(): IntroPhase {
-  if (window.location.hash) return 'done';
   return hasSeenIntro() ? 'done' : 'active';
 }
 
@@ -61,7 +60,6 @@ export default function App() {
   useLayoutEffect(() => {
     if (!introVisible) return;
 
-    markIntroSeen();
     const previousScrollRestoration = window.history.scrollRestoration;
     const previousHtmlOverflow = document.documentElement.style.overflow;
     const previousBodyOverflow = document.body.style.overflow;
@@ -84,7 +82,6 @@ export default function App() {
 
   useEffect(() => {
     if (introPhase !== 'done') return;
-    markIntroSeen();
     const id = window.requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => window.cancelAnimationFrame(id);
   }, [introPhase]);

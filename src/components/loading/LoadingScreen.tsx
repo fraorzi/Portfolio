@@ -6,7 +6,7 @@ import {
 } from '@/components/loading/constants';
 
 const TRAIL_LENGTH = '42vh';
-const NAME_TRAIL_GAP = '64px';
+const NAME_TRAIL_GAP = '32px';
 const NAME_DESCENT = `calc(${TRAIL_LENGTH} + ${NAME_TRAIL_GAP})`;
 const DESCENT_DURATION = 0.85;
 const DESCENT_EASE = [0.5, 0, 0.75, 0] as const;
@@ -79,7 +79,7 @@ export function LoadingScreen({ onComplete, onExitStart }: LoadingScreenProps) {
       <motion.div
         aria-hidden
         className="to-paper/40 absolute top-1/2 left-1/2 -translate-x-1/2 bg-gradient-to-b from-transparent blur-md"
-        style={{ width: '12px' }}
+        style={{ width: '9px' }}
         initial={{ height: 0 }}
         animate={{ height: stage >= 1 ? TRAIL_LENGTH : 0 }}
         transition={{ duration: DESCENT_DURATION, ease: DESCENT_EASE }}
@@ -87,7 +87,7 @@ export function LoadingScreen({ onComplete, onExitStart }: LoadingScreenProps) {
       <motion.div
         aria-hidden
         className="to-paper absolute top-1/2 left-1/2 -translate-x-1/2 bg-gradient-to-b from-transparent"
-        style={{ width: '1.5px' }}
+        style={{ width: '1px' }}
         initial={{ height: 0 }}
         animate={{ height: stage >= 1 ? TRAIL_LENGTH : 0 }}
         transition={{ duration: DESCENT_DURATION, ease: DESCENT_EASE }}

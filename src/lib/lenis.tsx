@@ -5,10 +5,21 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 const NAV_OFFSET = -84;
 
+function removeHashFromUrl() {
+  if (!window.location.hash) return;
+  window.history.replaceState(
+    null,
+    '',
+    `${window.location.pathname}${window.location.search}`,
+  );
+}
+
 export function SmoothScrollProvider({ children }: { children: ReactNode }) {
   const reduced = useReducedMotion();
 
   useEffect(() => {
+    removeHashFromUrl();
+
     const lenis = reduced
       ? null
       : new Lenis({
@@ -18,7 +29,13 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
         });
 
     const scrollToHash = (hash: string, immediate = false) => {
-      const id = decodeURIComponent(hash.slice(1));
+      let id: string;
+      try {
+        id = decodeURIComponent(hash.slice(1));
+      } catch {
+        return false;
+      }
+
       const target = document.getElementById(id);
       if (!target) return false;
 
@@ -78,13 +95,7 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
       if (!scrollToHash(url.hash)) return;
 
       event.preventDefault();
-      window.history.pushState(null, '', url.hash);
-    };
-
-    const onPopState = () => {
-      if (window.location.hash.length > 1) {
-        scrollToHash(window.location.hash);
-      }
+      removeHashFromUrl();
     };
 
     lenis?.on('scroll', ScrollTrigger.update);
@@ -95,25 +106,10 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
       gsap.ticker.lagSmoothing(0);
     }
 
-    const hashFrame = window.requestAnimationFrame(() => {
-      if (window.location.hash.length > 1) {
-        const didScroll = scrollToHash(window.location.hash, true);
-        if (didScroll) {
-          window.requestAnimationFrame(() => {
-            ScrollTrigger.refresh();
-            ScrollTrigger.update();
-          });
-        }
-      }
-    });
-
     document.addEventListener('click', onAnchorClick);
-    window.addEventListener('popstate', onPopState);
 
     return () => {
-      window.cancelAnimationFrame(hashFrame);
       document.removeEventListener('click', onAnchorClick);
-      window.removeEventListener('popstate', onPopState);
       if (lenis) {
         gsap.ticker.remove(tick);
         lenis.destroy();

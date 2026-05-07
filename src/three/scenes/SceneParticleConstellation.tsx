@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { BufferAttribute, BufferGeometry, CanvasTexture } from 'three';
 import type { Group } from 'three';
@@ -13,9 +13,25 @@ import {
 const COUNT = 1800;
 const NEIGHBOR_DIST = 0.32;
 const MAX_PER_PARTICLE = 3;
+const SCENE_SCALE = [0.9, 0.9, 0.9] as const;
+const INTERACTIVE_POINTER_QUERY = '(hover: hover) and (pointer: fine)';
+
+function getCanInteract() {
+  return window.matchMedia(INTERACTIVE_POINTER_QUERY).matches;
+}
 
 export function SceneParticleConstellation() {
   const groupRef = useRef<Group>(null);
+  const [canInteract, setCanInteract] = useState(getCanInteract);
+
+  useEffect(() => {
+    const media = window.matchMedia(INTERACTIVE_POINTER_QUERY);
+    const onChange = () => setCanInteract(media.matches);
+
+    onChange();
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
 
   const initial = useMemo(() => generateSpherePositions(COUNT, 1.55, 0.5), []);
 
@@ -71,18 +87,22 @@ export function SceneParticleConstellation() {
 
     if (groupRef.current) {
       groupRef.current.rotation.y += dt * 0.05;
-      const { x, y } = state.pointer;
-      groupRef.current.rotation.y += x * dt * 0.18;
-      groupRef.current.rotation.x += y * dt * 0.12;
+      if (canInteract) {
+        const { x, y } = state.pointer;
+        groupRef.current.rotation.y += x * dt * 0.18;
+        groupRef.current.rotation.x += y * dt * 0.12;
+      }
     }
   });
 
   return (
-    <group ref={groupRef}>
-      <mesh onPointerDown={handleBurst}>
-        <sphereGeometry args={[2.4, 16, 16]} />
-        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-      </mesh>
+    <group ref={groupRef} scale={SCENE_SCALE}>
+      {canInteract ? (
+        <mesh onPointerDown={handleBurst}>
+          <sphereGeometry args={[2.4, 16, 16]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        </mesh>
+      ) : null}
       <lineSegments geometry={lineGeo}>
         <lineBasicMaterial
           color="#008B7A"
