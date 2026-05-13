@@ -2,9 +2,50 @@
 @import '@fontsource-variable/space-grotesk/index.css';
 @import '@fontsource-variable/dm-sans/index.css';
 
+@font-face {
+  font-family: 'Cut Grotesk';
+  src: url('/fonts/CutGrotesk-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cut Grotesk';
+  src: url('/fonts/CutGrotesk-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cut Grotesk';
+  src: url('/fonts/CutGrotesk-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cut Grotesk';
+  src: url('/fonts/CutGrotesk-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cut Grotesk';
+  src: url('/fonts/CutGrotesk-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --font-display: 'Space Grotesk Variable', system-ui, sans-serif;
   --font-body: 'DM Sans Variable', system-ui, sans-serif;
+  --font-cut: 'Cut Grotesk', var(--font-body);
 
   --color-primary-50: #e6f5f2;
   --color-primary-100: #cceeea;
