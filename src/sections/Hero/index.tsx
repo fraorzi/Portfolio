@@ -13,7 +13,7 @@ export function Hero() {
         <p className="text-2xs text-paper/60 tracking-[0.32em] uppercase">
           Front-end developer · PL
         </p>
-        <h1 className="font-cut text-paper mt-6 max-w-[20ch] text-[length:var(--text-hero-lg)] leading-[1.1] tracking-[-0.02em]">
+        <h1 className="font-cut text-paper text-hero-lg mt-6 max-w-[20ch] leading-[1.1] tracking-[-0.02em]">
           Designing interfaces with restraint, motion, and a strong point of
           view.
         </h1>

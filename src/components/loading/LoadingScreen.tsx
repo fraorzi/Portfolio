@@ -51,7 +51,7 @@ export function LoadingScreen({ onComplete, onExitStart }: LoadingScreenProps) {
   if (reduced) {
     return (
       <motion.div
-        className="bg-ink fixed inset-0 z-[100] flex items-center justify-center"
+        className="bg-ink fixed inset-0 z-100 flex items-center justify-center"
         initial={{ opacity: 1 }}
         animate={{ opacity: 0 }}
         transition={{ duration: 0.6, delay: 1.0 }}
@@ -68,7 +68,7 @@ export function LoadingScreen({ onComplete, onExitStart }: LoadingScreenProps) {
 
   return (
     <motion.div
-      className="bg-ink fixed inset-0 z-[100] overflow-hidden"
+      className="bg-ink fixed inset-0 z-100 overflow-hidden"
       initial={{ y: 0 }}
       animate={{ y: stage >= 2 ? '-100svh' : 0 }}
       transition={{
@@ -78,7 +78,7 @@ export function LoadingScreen({ onComplete, onExitStart }: LoadingScreenProps) {
     >
       <motion.div
         aria-hidden
-        className="to-paper/40 absolute top-1/2 left-1/2 -translate-x-1/2 bg-gradient-to-b from-transparent blur-md"
+        className="to-paper/40 absolute top-1/2 left-1/2 -translate-x-1/2 bg-linear-to-b from-transparent blur-md"
         style={{ width: '9px' }}
         initial={{ height: 0 }}
         animate={{ height: stage >= 1 ? TRAIL_LENGTH : 0 }}
@@ -86,7 +86,7 @@ export function LoadingScreen({ onComplete, onExitStart }: LoadingScreenProps) {
       />
       <motion.div
         aria-hidden
-        className="to-paper absolute top-1/2 left-1/2 -translate-x-1/2 bg-gradient-to-b from-transparent"
+        className="to-paper absolute top-1/2 left-1/2 -translate-x-1/2 bg-linear-to-b from-transparent"
         style={{ width: '1px' }}
         initial={{ height: 0 }}
         animate={{ height: stage >= 1 ? TRAIL_LENGTH : 0 }}

@@ -58,9 +58,9 @@ export function Projects() {
             <li key={p.title} data-reveal>
               <a
                 href="#projects"
-                className="group border-ink/10 bg-paper hover:border-ink/25 block rounded-2xl border p-6 transition-all duration-500 ease-[var(--ease-out-expo)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.18)]"
+                className="group border-ink/10 bg-paper hover:border-ink/25 ease-out-expo block rounded-2xl border p-6 transition-all duration-500 hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.18)]"
               >
-                <div className="from-primary-100 to-primary-300 aspect-[4/3] w-full rounded-xl bg-gradient-to-br transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:scale-[1.01]" />
+                <div className="from-primary-100 to-primary-300 ease-out-expo aspect-4/3 w-full rounded-xl bg-linear-to-br transition-transform duration-700 group-hover:scale-[1.01]" />
                 <div className="mt-5 flex items-end justify-between gap-4">
                   <div>
                     <h3 className="font-display text-md text-ink">{p.title}</h3>
