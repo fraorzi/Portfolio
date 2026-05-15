@@ -1,31 +1,58 @@
 import { useRef } from 'react';
 import { Section } from '@/components/ui/Section';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { cn } from '@/lib/cn';
 
 const projects = [
   {
-    title: 'Project One',
-    role: 'Front-end · Design',
+    title: 'Lift Log',
+    role: 'Expo · React Native',
     year: '2026',
-    tag: 'In progress',
+    tag: 'Mobilna',
+    description:
+      'Aplikacja na iPhone do planowania treningów siłowych, zapisywania serii i śledzenia progresu w czasie.',
+    features: ['Serie', 'Progres', 'Plany', 'Historia'],
+    visualClass: 'from-primary-50 via-primary-200 to-ink/10',
   },
   {
-    title: 'Project Two',
-    role: 'Front-end',
+    title: 'Image Forge',
+    role: 'React · Narzędzia obrazów',
     year: '2025',
-    tag: 'Case study',
+    tag: 'Narzędzie',
+    description:
+      'Narzędzie do optymalizacji zdjęć, konwersji formatów, usuwania tła i przygotowywania assetów do publikacji.',
+    features: ['WebP', 'AVIF', 'Resize', 'Wycinanie tła'],
+    visualClass: 'from-ink/10 via-primary-100 to-primary-300',
   },
   {
-    title: 'Project Three',
-    role: 'Full-stack',
+    title: 'Studio Panel',
+    role: 'Next.js · Strapi · MySQL',
     year: '2025',
-    tag: 'Live',
+    tag: 'Full-stack',
+    description:
+      'Panel z autoryzacją, rolami użytkowników, CMS-em w Strapi i bazą MySQL dla treści oraz danych aplikacji.',
+    features: ['Auth', 'CMS', 'Role', 'Dashboard'],
+    visualClass: 'from-primary-100 via-paper to-ink/15',
   },
   {
-    title: 'Project Four',
-    role: 'Front-end · Motion',
-    year: '2024',
-    tag: 'Archived',
+    title: 'Webhook Operations',
+    role: 'Java · Spring Boot · MySQL',
+    year: '2026',
+    tag: 'Backend',
+    description:
+      'Platforma do odbierania webhooków, walidacji podpisów HMAC, ponawiania zdarzeń i podglądu pracy systemu.',
+    features: ['HMAC', 'Retry', 'Queue', 'Metrics'],
+    visualClass: 'from-ink/15 via-primary-50 to-primary-200',
+  },
+  {
+    title: 'Personal Search Engine',
+    role: 'C++ · Indexing · CLI',
+    year: '2026',
+    tag: 'Engine',
+    description:
+      'Lokalna wyszukiwarka plików i notatek z własnym indeksem, rankingiem trafności oraz szybkim fuzzy search.',
+    features: ['Index', 'Ranking', 'Fuzzy', 'CLI'],
+    visualClass: 'from-primary-200 via-paper to-ink/20',
   },
 ];
 
@@ -42,13 +69,13 @@ export function Projects() {
               data-reveal
               className="text-2xs text-ink/50 tracking-[0.32em] uppercase"
             >
-              03 — Selected work
+              03 — Projekty
             </p>
             <h2
               data-reveal
               className="text-ink mt-6 text-2xl leading-tight tracking-tight"
             >
-              Selected projects
+              Pięć kierunków, które rozwijają realne kompetencje.
             </h2>
           </div>
         </div>
@@ -60,7 +87,12 @@ export function Projects() {
                 href="#projects"
                 className="group border-ink/10 bg-paper hover:border-ink/25 ease-out-expo block rounded-2xl border p-6 transition-all duration-500 hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.18)]"
               >
-                <div className="from-primary-100 to-primary-300 ease-out-expo aspect-4/3 w-full rounded-xl bg-linear-to-br transition-transform duration-700 group-hover:scale-[1.01]" />
+                <div
+                  className={cn(
+                    'ease-out-expo aspect-4/3 w-full rounded-xl bg-linear-to-br transition-transform duration-700 group-hover:scale-[1.01]',
+                    p.visualClass,
+                  )}
+                />
                 <div className="mt-5 flex items-end justify-between gap-4">
                   <div>
                     <h3 className="font-display text-md text-ink">{p.title}</h3>
@@ -72,6 +104,19 @@ export function Projects() {
                     {p.tag}
                   </span>
                 </div>
+                <p className="text-ink/65 mt-4 max-w-[46ch] text-sm leading-relaxed">
+                  {p.description}
+                </p>
+                <ul className="mt-5 flex flex-wrap gap-2">
+                  {p.features.map((feature) => (
+                    <li
+                      key={feature}
+                      className="border-ink/10 bg-ink/[0.03] text-2xs text-ink/65 rounded-full border px-3 py-1 tracking-[0.12em] uppercase"
+                    >
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
               </a>
             </li>
           ))}
