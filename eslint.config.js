@@ -35,11 +35,4 @@ export default defineConfig([
       ],
     },
   },
-  {
-    files: ['src/three/**/*.{ts,tsx}'],
-    rules: {
-      'react-hooks/immutability': 'off',
-      'react-hooks/purity': 'off',
-    },
-  },
 ]);

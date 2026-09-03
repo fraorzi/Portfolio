@@ -1,14 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { motion } from 'motion/react';
-import { LoadingScreen } from '@/components/loading/LoadingScreen';
-import {
-  LOADING_SCREEN_SCROLL_DURATION,
-  LOADING_SCREEN_SCROLL_EASE,
-} from '@/components/loading/constants';
-import { Navbar } from '@/components/nav/Navbar';
+import { useCallback, useLayoutEffect, useState } from 'react';
+import { LoadingScreen } from '@/components/layout/LoadingScreen';
+import { Navbar } from '@/components/layout/Navbar';
 import { SmoothScrollProvider } from '@/lib/lenis';
-import { ScrollTrigger } from '@/lib/gsap';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useMounted } from '@/hooks/useMounted';
+import { useSceneScroll } from '@/hooks/useSceneScroll';
+import { Scene } from '@/scene/Scene';
 import { Hero } from '@/sections/Hero';
 import { About } from '@/sections/About';
 import { Services } from '@/sections/Services';
@@ -20,96 +16,49 @@ import { Footer } from '@/sections/Footer';
 
 type IntroPhase = 'active' | 'exiting' | 'done';
 
-const INTRO_STORAGE_KEY = 'portfolio:intro-seen';
-
-function canUseSessionStorage() {
-  try {
-    window.sessionStorage.getItem(INTRO_STORAGE_KEY);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function hasSeenIntro() {
-  if (!canUseSessionStorage()) return false;
-  return window.sessionStorage.getItem(INTRO_STORAGE_KEY) === 'true';
-}
-
-function markIntroSeen() {
-  if (!canUseSessionStorage()) return;
-  window.sessionStorage.setItem(INTRO_STORAGE_KEY, 'true');
-}
-
-function getInitialIntroPhase(): IntroPhase {
-  return hasSeenIntro() ? 'done' : 'active';
-}
-
 export default function App() {
-  const [introPhase, setIntroPhase] =
-    useState<IntroPhase>(getInitialIntroPhase);
-  const reduced = useReducedMotion();
+  const mounted = useMounted();
+  const [introPhase, setIntroPhase] = useState<IntroPhase>('active');
   const introVisible = introPhase !== 'done';
 
+  useSceneScroll(mounted);
+
   const handleExitStart = useCallback(() => setIntroPhase('exiting'), []);
-  const handleComplete = useCallback(() => {
-    markIntroSeen();
-    setIntroPhase('done');
-  }, []);
+  const handleComplete = useCallback(() => setIntroPhase('done'), []);
 
   useLayoutEffect(() => {
     if (!introVisible) return;
-
-    const previousScrollRestoration = window.history.scrollRestoration;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    const previousBodyOverflow = document.body.style.overflow;
+    const previousRestoration = window.history.scrollRestoration;
+    const previousOverflow = document.documentElement.style.overflow;
     window.history.scrollRestoration = 'manual';
     document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-
-    const frame = window.requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    });
-
     return () => {
-      window.cancelAnimationFrame(frame);
-      window.history.scrollRestoration = previousScrollRestoration;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-      document.body.style.overflow = previousBodyOverflow;
+      window.history.scrollRestoration = previousRestoration;
+      document.documentElement.style.overflow = previousOverflow;
     };
   }, [introVisible]);
-
-  useEffect(() => {
-    if (introPhase !== 'done') return;
-    const id = window.requestAnimationFrame(() => ScrollTrigger.refresh());
-    return () => window.cancelAnimationFrame(id);
-  }, [introPhase]);
 
   return (
     <SmoothScrollProvider>
       {introVisible ? (
         <LoadingScreen
-          onComplete={handleComplete}
+          exiting={introPhase === 'exiting'}
           onExitStart={handleExitStart}
+          onComplete={handleComplete}
         />
       ) : null}
-      <motion.div
+
+      <Scene active={mounted} />
+
+      <div
         aria-hidden={introVisible}
-        className="bg-ink min-h-screen"
         inert={introVisible ? true : undefined}
-        initial={false}
-        animate={{
-          y: !reduced && introPhase === 'active' ? '100svh' : 0,
-        }}
-        transition={{
-          duration: LOADING_SCREEN_SCROLL_DURATION,
-          ease: LOADING_SCREEN_SCROLL_EASE,
-        }}
+        className="relative z-10"
       >
-        <Navbar />
+        <Navbar visible={introPhase !== 'active'} />
         <main>
-          <Hero />
+          <Hero ready={introPhase !== 'active'} />
           <About />
           <Services />
           <Projects />
@@ -118,7 +67,7 @@ export default function App() {
           <Contact />
         </main>
         <Footer />
-      </motion.div>
+      </div>
     </SmoothScrollProvider>
   );
 }
