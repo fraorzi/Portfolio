@@ -1,9 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import Lenis from 'lenis';
-import { gsap, ScrollTrigger } from '@/lib/gsap';
+import { registerLenis, scrollToId } from '@/lib/scroll';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-
-const NAV_OFFSET = -84;
 
 function removeHashFromUrl() {
   if (!window.location.hash) return;
@@ -23,42 +21,11 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     const lenis = reduced
       ? null
       : new Lenis({
-          duration: 2.5,
+          duration: 1.6,
           easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
           smoothWheel: true,
         });
-
-    const scrollToHash = (hash: string, immediate = false) => {
-      let id: string;
-      try {
-        id = decodeURIComponent(hash.slice(1));
-      } catch {
-        return false;
-      }
-
-      const target = document.getElementById(id);
-      if (!target) return false;
-
-      const offset = id === 'hero' ? 0 : NAV_OFFSET;
-
-      if (reduced || !lenis) {
-        const top =
-          target.getBoundingClientRect().top + window.scrollY + offset;
-        window.scrollTo({
-          top: Math.max(0, top),
-          left: 0,
-          behavior: 'auto',
-        });
-        return true;
-      }
-
-      lenis.scrollTo(target, {
-        offset,
-        immediate,
-        lock: !immediate,
-      });
-      return true;
-    };
+    registerLenis(lenis, reduced);
 
     const onAnchorClick = (event: MouseEvent) => {
       if (
@@ -86,34 +53,39 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
       if (
         url.origin !== window.location.origin ||
         url.pathname !== window.location.pathname ||
-        url.search !== window.location.search ||
         url.hash.length <= 1
       ) {
         return;
       }
 
-      if (!scrollToHash(url.hash)) return;
+      let id: string;
+      try {
+        id = decodeURIComponent(url.hash.slice(1));
+      } catch {
+        return;
+      }
 
+      if (!scrollToId(id)) return;
       event.preventDefault();
       removeHashFromUrl();
     };
 
-    lenis?.on('scroll', ScrollTrigger.update);
-
-    const tick = (time: number) => lenis?.raf(time * 1000);
-    if (lenis) {
-      gsap.ticker.add(tick);
-      gsap.ticker.lagSmoothing(0);
-    }
+    let frame = 0;
+    const tick = (time: number) => {
+      lenis?.raf(time);
+      frame = window.requestAnimationFrame(tick);
+    };
+    if (lenis) frame = window.requestAnimationFrame(tick);
 
     document.addEventListener('click', onAnchorClick);
 
     return () => {
       document.removeEventListener('click', onAnchorClick);
       if (lenis) {
-        gsap.ticker.remove(tick);
+        window.cancelAnimationFrame(frame);
         lenis.destroy();
       }
+      registerLenis(null, reduced);
     };
   }, [reduced]);
 

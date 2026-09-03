@@ -1,69 +1,83 @@
-import { useRef } from 'react';
-import { Section } from '@/components/ui/Section';
-import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { motion } from 'motion/react';
+import { sections, skillGroups } from '@/content/site';
+import { SectionShell } from '@/components/layout/SectionShell';
+import { TextReveal } from '@/components/ui/TextReveal';
 
-const groups = [
-  {
-    label: 'Core',
-    items: ['React', 'TypeScript', 'Next.js', 'Vite', 'Tailwind'],
-  },
-  {
-    label: 'Motion & 3D',
-    items: ['Motion', 'GSAP', 'Three.js', 'R3F', 'Lenis'],
-  },
-  {
-    label: 'Backend & infra',
-    items: ['Node.js', 'PostgreSQL', 'Prisma', 'Vercel', 'Netlify'],
-  },
-  {
-    label: 'Tooling',
-    items: ['Bun', 'pnpm', 'ESLint', 'Prettier', 'Husky'],
-  },
-];
+const meta = sections[4];
+const GOLDEN_ANGLE = 2.399963;
+
+function radialOffset(index: number) {
+  const angle = index * GOLDEN_ANGLE;
+  const distance = 28 + (index % 4) * 10;
+  return { x: Math.cos(angle) * distance, y: Math.sin(angle) * distance };
+}
+
+const groupStarts = skillGroups.reduce<number[]>((acc, _group, i) => {
+  acc.push(i === 0 ? 0 : acc[i - 1] + skillGroups[i - 1].items.length);
+  return acc;
+}, []);
 
 export function Skills() {
-  const ref = useRef<HTMLDivElement>(null);
-  useScrollReveal(ref);
-
   return (
-    <Section id="skills" theme="dark">
-      <div ref={ref} className="grid gap-12 md:grid-cols-12">
+    <SectionShell meta={meta}>
+      <div className="grid gap-12 md:grid-cols-12">
         <div className="md:col-span-4">
-          <p
-            data-reveal
-            className="text-2xs text-paper/50 tracking-[0.32em] uppercase"
-          >
-            04 — Stack
+          <TextReveal
+            as="h2"
+            text="Narzędzia, po które sięgam"
+            split="word"
+            whileInView
+            blur={4}
+            yOffset="30%"
+            className="text-2xl leading-tight tracking-tight"
+          />
+          <p className="text-muted-foreground mt-5 max-w-[30ch] text-sm">
+            Stack dobieram do problemu. Te elementy powtarzają się najczęściej.
           </p>
-          <h2
-            data-reveal
-            className="text-paper mt-6 text-2xl leading-tight tracking-tight"
-          >
-            Tools I reach for
-          </h2>
         </div>
 
-        <div className="space-y-8 md:col-span-8">
-          {groups.map((g) => (
+        <div className="space-y-10 md:col-span-8">
+          {skillGroups.map((group, groupIndex) => (
             <div
-              key={g.label}
-              data-reveal
-              className="border-paper/10 grid grid-cols-1 gap-3 border-t pt-6 md:grid-cols-[140px_1fr]"
+              key={group.label}
+              className="grid grid-cols-1 gap-4 md:grid-cols-[140px_1fr]"
             >
-              <p className="text-2xs text-paper/50 tracking-[0.24em] uppercase">
-                {g.label}
+              <p className="text-2xs text-muted-foreground pt-2 tracking-[0.24em] uppercase">
+                {group.label}
               </p>
-              <ul className="flex flex-wrap gap-x-5 gap-y-2">
-                {g.items.map((i) => (
-                  <li key={i} className="text-paper text-sm">
-                    {i}
-                  </li>
-                ))}
+              <ul className="flex flex-wrap gap-2">
+                {group.items.map((item, itemIndex) => {
+                  const index = groupStarts[groupIndex] + itemIndex;
+                  const offset = radialOffset(index);
+                  return (
+                    <motion.li
+                      key={item}
+                      initial={{
+                        opacity: 0,
+                        scale: 0.7,
+                        x: offset.x,
+                        y: offset.y,
+                      }}
+                      whileInView={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+                      viewport={{ once: true, amount: 0.6 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 220,
+                        damping: 22,
+                        mass: 0.8,
+                        delay: (index % 12) * 0.045,
+                      }}
+                      className="border-border bg-card/60 text-foreground hover:border-primary-500/60 rounded-full border px-3.5 py-1.5 text-xs transition-colors duration-300"
+                    >
+                      {item}
+                    </motion.li>
+                  );
+                })}
               </ul>
             </div>
           ))}
         </div>
       </div>
-    </Section>
+    </SectionShell>
   );
 }

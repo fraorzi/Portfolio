@@ -1,50 +1,77 @@
-import { useRef } from 'react';
-import { Section } from '@/components/ui/Section';
-import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useState, type FormEvent } from 'react';
+import { motion } from 'motion/react';
+import { ArrowUpRight } from 'lucide-react';
+import { contact, contactCopy, sections } from '@/content/site';
+import { SectionShell } from '@/components/layout/SectionShell';
+import {
+  StatefulButton,
+  type ButtonState,
+} from '@/components/ui/button/StatefulButton';
+import { TextReveal } from '@/components/ui/TextReveal';
+
+const meta = sections[6];
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function Contact() {
-  const ref = useRef<HTMLDivElement>(null);
-  useScrollReveal(ref);
+  const [state, setState] = useState<ButtonState>('idle');
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (state === 'loading') return;
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    setState('loading');
+    try {
+      const response = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(
+          Array.from(data.entries()).map(([k, v]) => [k, String(v)]),
+        ).toString(),
+      });
+      if (!response.ok) throw new Error(`status ${response.status}`);
+      setState('success');
+      form.reset();
+    } catch {
+      setState('error');
+      window.setTimeout(() => setState('idle'), 2400);
+    }
+  };
 
   return (
-    <Section id="contact" theme="dark">
-      <div ref={ref} className="grid gap-12 md:grid-cols-12">
+    <SectionShell meta={meta}>
+      <div className="grid gap-12 md:grid-cols-12">
         <div className="md:col-span-5">
-          <p
-            data-reveal
-            className="text-2xs text-paper/50 tracking-[0.32em] uppercase"
-          >
-            06 — Contact
+          <TextReveal
+            as="h2"
+            text={contactCopy.title}
+            split="word"
+            whileInView
+            blur={4}
+            yOffset="30%"
+            className="text-2xl leading-tight tracking-tight"
+          />
+          <p className="text-muted-foreground mt-6 max-w-[40ch] text-sm">
+            {contactCopy.lead}
           </p>
-          <h2
-            data-reveal
-            className="text-paper mt-6 text-2xl leading-tight tracking-tight"
-          >
-            Let's build something
-            <br />
-            considered together.
-          </h2>
-          <p data-reveal className="text-paper/70 mt-6 max-w-[40ch] text-sm">
-            Available for select front-end and product work. Reply within a day
-            or two.
-          </p>
-          <ul data-reveal className="text-paper mt-8 space-y-2 text-sm">
+          <ul className="mt-8 space-y-2 text-sm">
             <li>
               <a
-                href="mailto:orzechowskifranek@gmail.com"
-                className="hover:text-primary-300"
+                href={`mailto:${contact.email}`}
+                className="text-foreground hover:text-primary-500 inline-flex items-center gap-1.5 transition-colors"
               >
-                orzechowskifranek@gmail.com
+                {contact.email}
               </a>
             </li>
             <li>
               <a
-                href="https://github.com/fraorzi"
+                href={contact.github}
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-primary-300"
+                className="text-foreground hover:text-primary-500 inline-flex items-center gap-1.5 transition-colors"
               >
-                github.com/fraorzi
+                {contact.githubLabel}
+                <ArrowUpRight className="h-3 w-3" aria-hidden />
               </a>
             </li>
           </ul>
@@ -53,71 +80,137 @@ export function Contact() {
         <form
           name="contact"
           method="POST"
+          action="/"
           data-netlify="true"
           netlify-honeypot="bot-field"
-          data-reveal
-          className="space-y-5 md:col-span-7"
+          onSubmit={handleSubmit}
+          className="space-y-7 md:col-span-7"
         >
           <input type="hidden" name="form-name" value="contact" />
           <p className="hidden">
             <label>
-              Don't fill this out:
+              Nie wypełniaj tego pola:
               <input name="bot-field" />
             </label>
           </p>
 
-          <Field label="Name" name="name" type="text" />
-          <Field label="Email" name="email" type="email" />
-          <FieldTextArea label="Message" name="message" />
+          <Field
+            label={contactCopy.fields.name}
+            name="name"
+            type="text"
+            autoComplete="name"
+            index={0}
+          />
+          <Field
+            label={contactCopy.fields.email}
+            name="email"
+            type="email"
+            autoComplete="email"
+            index={1}
+          />
+          <Field
+            label={contactCopy.fields.message}
+            name="message"
+            multiline
+            index={2}
+          />
 
-          <button
-            type="submit"
-            className="bg-primary-600 text-2xs text-paper hover:bg-primary-500 rounded-full px-5 py-2 tracking-[0.18em] uppercase transition-colors"
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.6 }}
+            transition={{ duration: 0.8, delay: 0.45, ease: EASE }}
+            className="flex items-center gap-4 pt-2"
           >
-            Send message
-          </button>
+            <StatefulButton
+              type="submit"
+              state={state}
+              size="sm"
+              loadingText={contactCopy.sending}
+              successText={contactCopy.sent}
+              errorText={contactCopy.failed}
+              className="text-2xs h-9 px-5 tracking-[0.18em] uppercase"
+            >
+              {contactCopy.submit}
+            </StatefulButton>
+            <span className="text-2xs text-muted-foreground">
+              Formularz obsługuje Netlify. Bez ciasteczek.
+            </span>
+          </motion.div>
         </form>
       </div>
-    </Section>
+    </SectionShell>
   );
 }
+
+type FieldProps = {
+  label: string;
+  name: string;
+  index: number;
+  type?: string;
+  autoComplete?: string;
+  multiline?: boolean;
+};
 
 function Field({
   label,
   name,
-  type,
-}: {
-  label: string;
-  name: string;
-  type: string;
-}) {
-  return (
-    <label className="block">
-      <span className="text-2xs text-paper/50 tracking-[0.24em] uppercase">
-        {label}
-      </span>
-      <input
-        name={name}
-        type={type}
-        required
-        className="border-paper/15 text-paper placeholder-paper/30 focus:border-primary-400 mt-2 w-full border-b bg-transparent py-2 text-sm transition-colors outline-none"
-      />
-    </label>
-  );
-}
+  index,
+  type = 'text',
+  autoComplete,
+  multiline = false,
+}: FieldProps) {
+  const id = `contact-${name}`;
+  const inputClass =
+    'peer text-foreground placeholder:text-muted-foreground/60 mt-2 w-full bg-transparent py-2 text-sm outline-none focus-visible:outline-none';
 
-function FieldTextArea({ label, name }: { label: string; name: string }) {
   return (
-    <label className="block">
-      <span className="text-2xs text-paper/50 tracking-[0.24em] uppercase">
-        {label}
-      </span>
-      <textarea
-        name={name}
-        rows={4}
-        required
-        className="border-paper/15 text-paper placeholder-paper/30 focus:border-primary-400 mt-2 w-full resize-none border-b bg-transparent py-2 text-sm transition-colors outline-none"
+    <div className="relative">
+      <motion.span
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.8 }}
+        className="block overflow-hidden"
+      >
+        <motion.label
+          htmlFor={id}
+          variants={{ hidden: { y: '110%' }, visible: { y: '0%' } }}
+          transition={{ duration: 0.8, delay: index * 0.12, ease: EASE }}
+          className="text-2xs text-muted-foreground block tracking-[0.24em] uppercase"
+        >
+          {label}
+        </motion.label>
+      </motion.span>
+      {multiline ? (
+        <textarea
+          id={id}
+          name={name}
+          rows={4}
+          required
+          className={`${inputClass} resize-none`}
+        />
+      ) : (
+        <input
+          id={id}
+          name={name}
+          type={type}
+          required
+          autoComplete={autoComplete}
+          className={inputClass}
+        />
+      )}
+      <motion.span
+        aria-hidden
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true, amount: 0.8 }}
+        transition={{ duration: 1, delay: 0.15 + index * 0.12, ease: EASE }}
+        className="bg-border absolute inset-x-0 bottom-0 h-px origin-left"
       />
-    </label>
+      <span
+        aria-hidden
+        className="bg-primary-500 absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] peer-focus:scale-x-100"
+      />
+    </div>
   );
 }
