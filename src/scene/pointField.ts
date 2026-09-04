@@ -29,12 +29,13 @@ export type PointFieldHandle = {
 };
 
 function buildGeometry(count: number, wide: boolean) {
-  const { positions, seeds } = buildTargets(count, wide);
+  const { positions, thread, seeds } = buildTargets(count, wide);
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(positions[0], 3));
   for (let i = 1; i < positions.length; i += 1) {
     geometry.setAttribute(`aT${i}`, new BufferAttribute(positions[i], 3));
   }
+  geometry.setAttribute('aThread', new BufferAttribute(thread, 3));
   geometry.setAttribute('aSeed', new BufferAttribute(seeds, 1));
   geometry.computeBoundingSphere();
   return geometry;
@@ -61,6 +62,7 @@ export function createPointField({
   const scene = new Scene();
   const camera = new PerspectiveCamera(40, 1, 0.1, 30);
   camera.position.set(0, 0, 6);
+  const viewHeight = 2 * 6 * Math.tan((camera.fov * Math.PI) / 360);
 
   const material = new ShaderMaterial({
     vertexShader: pointVertexShader,
@@ -74,11 +76,15 @@ export function createPointField({
       uTime: { value: 0 },
       uSize: { value: 2.2 },
       uPixelRatio: { value: 1 },
-      uBase: { value: PAPER.clone() },
+      uSplitY: { value: 2 },
+      uThemeAbove: { value: 1 },
+      uThemeBelow: { value: 1 },
+      uInk: { value: INK },
+      uPaper: { value: PAPER },
       uAccent: { value: ACCENT },
       uOchre: { value: OCHRE },
       uOpacity: { value: 0 },
-      uBaseStrength: { value: 0.6 },
+      uStrength: { value: 1 },
     },
   });
 
@@ -113,6 +119,7 @@ export function createPointField({
 
   let last = performance.now();
   let smoothProgress = 0;
+  let smoothOffset = 0;
   let elapsed = 0;
   const stats = { frames: 0, slow: 0, reported: false };
   let visible = !document.hidden;
@@ -125,14 +132,18 @@ export function createPointField({
 
     smoothProgress +=
       (sceneProgress.value - smoothProgress) * Math.min(1, delta * 6);
+    smoothOffset +=
+      (sceneProgress.offset - smoothOffset) * Math.min(1, delta * 8);
+    camera.position.y = -smoothOffset * viewHeight;
 
     const u = material.uniforms;
     u.uProgress.value = smoothProgress;
     u.uTime.value = elapsed;
     u.uOpacity.value = Math.min(1, u.uOpacity.value + delta * 0.8);
-    const bgMix = sceneProgress.bgMix;
-    (u.uBase.value as Color).copy(INK).lerp(PAPER, bgMix);
-    u.uBaseStrength.value = (0.38 + 0.24 * bgMix) * (wide ? 1 : 0.6);
+    u.uSplitY.value = sceneProgress.splitY;
+    u.uThemeAbove.value = sceneProgress.themeAbove;
+    u.uThemeBelow.value = sceneProgress.themeBelow;
+    u.uStrength.value = wide ? 1 : 0.5;
 
     const targetY = sceneProgress.pointerX * 0.18 + elapsed * 0.02;
     const targetX = -sceneProgress.pointerY * 0.12;

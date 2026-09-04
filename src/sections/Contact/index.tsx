@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/button/StatefulButton';
 import { TextReveal } from '@/components/ui/TextReveal';
 
-const meta = sections[6];
+const meta = sections[5];
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function Contact() {
@@ -54,27 +54,13 @@ export function Contact() {
           <p className="text-muted-foreground mt-6 max-w-[40ch] text-sm">
             {contactCopy.lead}
           </p>
-          <ul className="mt-8 space-y-2 text-sm">
-            <li>
-              <a
-                href={`mailto:${contact.email}`}
-                className="text-foreground hover:text-primary-500 inline-flex items-center gap-1.5 transition-colors"
-              >
-                {contact.email}
-              </a>
-            </li>
-            <li>
-              <a
-                href={contact.github}
-                target="_blank"
-                rel="noreferrer"
-                className="text-foreground hover:text-primary-500 inline-flex items-center gap-1.5 transition-colors"
-              >
-                {contact.githubLabel}
-                <ArrowUpRight className="h-3 w-3" aria-hidden />
-              </a>
-            </li>
-          </ul>
+          <a
+            href={`mailto:${contact.email}`}
+            className="text-foreground hover:text-primary-600 mt-8 inline-flex items-center gap-1.5 text-sm transition-colors"
+          >
+            {contact.email}
+            <ArrowUpRight className="h-3 w-3" aria-hidden />
+          </a>
         </div>
 
         <form
@@ -89,7 +75,7 @@ export function Contact() {
           <input type="hidden" name="form-name" value="contact" />
           <p className="hidden">
             <label>
-              Nie wypełniaj tego pola:
+              {contactCopy.honeypot}
               <input name="bot-field" />
             </label>
           </p>
@@ -129,12 +115,12 @@ export function Contact() {
               loadingText={contactCopy.sending}
               successText={contactCopy.sent}
               errorText={contactCopy.failed}
-              className="text-2xs h-9 px-5 tracking-[0.18em] uppercase"
+              className="text-2xs h-9 px-5 tracking-[0.16em] uppercase"
             >
               {contactCopy.submit}
             </StatefulButton>
             <span className="text-2xs text-muted-foreground">
-              Formularz obsługuje Netlify. Bez ciasteczek.
+              {contactCopy.note}
             </span>
           </motion.div>
         </form>
@@ -176,7 +162,7 @@ function Field({
           htmlFor={id}
           variants={{ hidden: { y: '110%' }, visible: { y: '0%' } }}
           transition={{ duration: 0.8, delay: index * 0.12, ease: EASE }}
-          className="text-2xs text-muted-foreground block tracking-[0.24em] uppercase"
+          className="text-2xs text-muted-foreground block tracking-[0.2em] uppercase"
         >
           {label}
         </motion.label>

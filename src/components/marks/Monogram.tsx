@@ -53,15 +53,14 @@ export function Monogram({
       <motion.circle
         cx="21.5"
         cy="20.5"
-        r="1.4"
+        r="1.6"
         stroke="none"
         className="fill-primary-500"
-        initial={animated ? { scale: 0, opacity: 0 } : undefined}
-        animate={draw === 'mount' ? { scale: 1, opacity: 1 } : undefined}
-        whileInView={draw === 'inView' ? { scale: 1, opacity: 1 } : undefined}
+        initial={animated ? { opacity: 0 } : undefined}
+        animate={draw === 'mount' ? { opacity: 1 } : undefined}
+        whileInView={draw === 'inView' ? { opacity: 1 } : undefined}
         viewport={{ once: true, amount: 0.6 }}
         transition={{ duration: 0.5, delay: 1.0, ease: DRAW_EASE }}
-        style={{ originX: '21.5px', originY: '20.5px' }}
       />
     </svg>
   );

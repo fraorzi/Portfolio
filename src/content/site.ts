@@ -3,10 +3,9 @@ export type SectionTheme = 'light' | 'dark';
 export type SectionId =
   | 'hero'
   | 'about'
-  | 'services'
   | 'projects'
-  | 'skills'
-  | 'process'
+  | 'scope'
+  | 'recent'
   | 'contact';
 
 export type SectionMeta = {
@@ -19,16 +18,25 @@ export type SectionMeta = {
 export const sections: readonly SectionMeta[] = [
   { id: 'hero', index: 0, label: 'Start', theme: 'dark' },
   { id: 'about', index: 1, label: 'O mnie', theme: 'light' },
-  { id: 'services', index: 2, label: 'Zakres', theme: 'dark' },
-  { id: 'projects', index: 3, label: 'Projekty', theme: 'light' },
-  { id: 'skills', index: 4, label: 'Stack', theme: 'dark' },
-  { id: 'process', index: 5, label: 'Proces', theme: 'light' },
-  { id: 'contact', index: 6, label: 'Kontakt', theme: 'dark' },
+  { id: 'projects', index: 2, label: 'Projekty', theme: 'dark' },
+  { id: 'scope', index: 3, label: 'Zakres', theme: 'light' },
+  { id: 'recent', index: 4, label: 'Ostatnio', theme: 'dark' },
+  { id: 'contact', index: 5, label: 'Kontakt', theme: 'light' },
 ];
+
+export const footerTheme: SectionTheme = 'dark';
 
 export const navItems = sections.filter((s) => s.id !== 'hero');
 
+export const navCopy = {
+  label: 'Nawigacja',
+  menu: 'Menu',
+  open: ', otwórz nawigację',
+  home: 'Do początku strony',
+};
+
 export const contact = {
+  name: 'Franciszek Orzechowski',
   email: 'orzechowskifranek@gmail.com',
   github: 'https://github.com/fraorzi',
   githubLabel: 'github.com/fraorzi',
@@ -37,169 +45,117 @@ export const contact = {
 };
 
 export const hero = {
-  eyebrow: 'Front-end developer · Polska',
-  title: 'Interfejsy z rytmem: umiar, ruch i detal, który zostaje w pamięci.',
-  lead: 'Franciszek Orzechowski — front-end developer z zapleczem backendowym. Wybrane projekty, proces i sposób myślenia o sieci.',
-  primaryCta: 'Zobacz projekty',
-  secondaryCta: 'Napisz do mnie',
-  scrollCue: 'Przewiń',
+  title: 'Front-end z rytmem. Backend bez tłumacza.',
+  lead: 'Franciszek Orzechowski — front-end developer. React, TypeScript, ruch i 3D w przeglądarce; po drugiej stronie Node, Java, Swift i bazy danych.',
+  primaryCta: 'Zobacz projekt',
+  secondaryCta: 'Napisz',
 };
 
 export const about = {
   title:
-    'Front-end developer z zapleczem backendowym. Skupiam się na interfejsach, które są dopracowane i szybkie.',
-  body: 'Pracuję głównie w React i TypeScript. Interesuje mnie motion design, 3D w przeglądarce i te małe decyzje, przez które produkt wydaje się przemyślany. Znam też drugą stronę — Node, Java, bazy danych — więc z backendem rozmawiam bez tłumacza.',
+    'Robię interfejsy, które są dopracowane i szybkie — i wiem, co dzieje się za nimi.',
+  body: 'Pracuję głównie w React i TypeScript. Interesują mnie ruch, 3D w przeglądarce i te małe decyzje, przez które produkt wydaje się przemyślany. Ostatnio dużo czasu spędzam w Swift i C, pisząc narzędzie do przeglądu kodu. Znam też drugą stronę — Node, Java, bazy danych — więc z backendem rozmawiam bez tłumacza.',
+  facts: [
+    { label: 'Baza', value: 'Warszawa' },
+    { label: 'Praca', value: 'zdalnie lub hybrydowo' },
+    { label: 'Języki', value: 'polski, angielski' },
+  ],
 };
-
-export type Service = {
-  title: string;
-  body: string;
-  metric: { value: number; suffix: string; label: string };
-};
-
-export const services: readonly Service[] = [
-  {
-    title: 'Inżynieria interfejsów',
-    body: 'Produkcyjne UI w React, TypeScript i Tailwind. Systemy komponentów, dostępność i wydajność mierzona, a nie zakładana.',
-    metric: { value: 250, suffix: ' kB', label: 'budżet JS po gzip' },
-  },
-  {
-    title: 'Motion i 3D',
-    body: 'Scroll-driven storytelling, mikrointerakcje i sceny WebGL, które trzymają klatki również na telefonie.',
-    metric: {
-      value: 60,
-      suffix: ' fps',
-      label: 'cel na urządzeniach mobilnych',
-    },
-  },
-  {
-    title: 'Partnerstwo produktowe',
-    body: 'Współpraca z designerami od konceptu do wdrożenia: doprecyzowanie flow, dopieszczenie detali, decyzje oparte na danych.',
-    metric: { value: 4.5, suffix: ':1', label: 'minimalny kontrast tekstu' },
-  },
-];
 
 export type Project = {
   slug: string;
+  repo: { owner: string; name: string };
   title: string;
+  summary: string;
   role: string;
-  year: string;
-  tag: string;
-  description: string;
-  detail: string;
+  platform: string;
+  detail: readonly string[];
   stack: readonly string[];
-  href?: string;
 };
 
 export const projects: readonly Project[] = [
   {
-    slug: 'lift-log',
-    title: 'Lift Log',
-    role: 'Expo · React Native',
-    year: '2026',
-    tag: 'Mobilna',
-    description:
-      'Aplikacja na iPhone do planowania treningów siłowych, zapisywania serii i śledzenia progresu w czasie.',
-    detail:
-      'Offline-first, lokalna baza z synchronizacją w tle. Wykresy progresu liczone przyrostowo, żeby lista historii otwierała się natychmiast nawet po roku treningów.',
-    stack: ['Expo', 'React Native', 'SQLite', 'Reanimated'],
-  },
-  {
-    slug: 'image-forge',
-    title: 'Image Forge',
-    role: 'React · Narzędzia obrazów',
-    year: '2025',
-    tag: 'Narzędzie',
-    description:
-      'Narzędzie do optymalizacji zdjęć, konwersji formatów, usuwania tła i przygotowywania assetów do publikacji.',
-    detail:
-      'Przetwarzanie w Web Workerach, kolejka zadań z podglądem na żywo. WebP i AVIF przez WASM, bez wysyłania plików na serwer.',
-    stack: ['React', 'Web Workers', 'WASM', 'Vite'],
-  },
-  {
-    slug: 'studio-panel',
-    title: 'Studio Panel',
-    role: 'Next.js · Strapi · MySQL',
-    year: '2025',
-    tag: 'Full-stack',
-    description:
-      'Panel z autoryzacją, rolami użytkowników, CMS-em w Strapi i bazą MySQL dla treści oraz danych aplikacji.',
-    detail:
-      'Role i uprawnienia na poziomie pól, audyt zmian, podgląd treści przed publikacją. Frontend w Next.js z cache per rola.',
-    stack: ['Next.js', 'Strapi', 'MySQL', 'Auth.js'],
-  },
-  {
-    slug: 'webhook-operations',
-    title: 'Webhook Operations',
-    role: 'Java · Spring Boot · MySQL',
-    year: '2026',
-    tag: 'Backend',
-    description:
-      'Platforma do odbierania webhooków, walidacji podpisów HMAC, ponawiania zdarzeń i podglądu pracy systemu.',
-    detail:
-      'Idempotentne przyjmowanie zdarzeń, kolejka z wykładniczym retry, metryki i dashboard operacyjny do podglądu opóźnień.',
-    stack: ['Java', 'Spring Boot', 'MySQL', 'Docker'],
+    slug: 'diffscope',
+    repo: { owner: 'fraorzi', name: 'diffscope_swift' },
+    title: 'DiffScope',
+    summary:
+      'Aplikacja macOS do przeglądu diffów w lokalnych repozytoriach Git. Dopasowuje zmiany strukturalnie, nie tylko liniami — i nigdy nie ukrywa różnicy w tekście.',
+    role: 'Solo: produkt, architektura, silnik diffów',
+    platform: 'macOS · tylko odczyt · bez sieci',
+    detail: [
+      'Silnik w C wyrównuje edycje strukturalnie: usunięty wrapper JSX, przestawione propsy czy przeformatowany plik czytają się jako to, czym są.',
+      'Trzy tryby widoku — strukturalny, rozszerzony, surowy — zawsze side-by-side. Dokładny tekst źródłowy jest źródłem prawdy.',
+      'Diff strukturalny dla TS, TSX, JS i JSX; pozostałe pliki jako czytelnie oznaczony diff tekstowy.',
+    ],
+    stack: ['Swift', 'C', 'SwiftUI', 'Git'],
   },
 ];
 
-export type SkillGroup = { label: string; items: readonly string[] };
+export const projectsCopy = {
+  title: 'Jeden projekt na warsztacie, kolejny w drodze.',
+  lead: 'Karty czytają dane prosto z GitHuba: ostatni commit, języki, tempo pracy.',
+  open: 'Szczegóły projektu',
+  close: 'Zamknij',
+  repoLink: 'Repozytorium',
+  lastCommit: 'ostatni commit',
+  commits: 'commitów',
+  commitsLabel: 'Commity',
+  roleLabel: 'Rola',
+  since: 'Start',
+  upcoming: {
+    title: 'Następny projekt',
+    body: 'W trakcie. Repozytorium pojawi się tutaj, gdy będzie co pokazać.',
+  },
+};
 
-export const skillGroups: readonly SkillGroup[] = [
+export type ScopeArea = {
+  title: string;
+  body: string;
+  tools: readonly string[];
+};
+
+export const scope: readonly ScopeArea[] = [
   {
-    label: 'Core',
-    items: ['React', 'TypeScript', 'Next.js', 'Vite', 'Tailwind'],
+    title: 'Interfejsy',
+    body: 'Produkcyjne UI w React i TypeScript. Systemy komponentów, dostępność i wydajność, którą się mierzy, a nie zakłada.',
+    tools: ['React', 'TypeScript', 'Next.js', 'Vite', 'Tailwind'],
   },
   {
-    label: 'Motion i 3D',
-    items: ['Motion', 'GSAP', 'Three.js', 'R3F', 'Lenis', 'GLSL'],
+    title: 'Ruch i 3D',
+    body: 'Scroll-driven storytelling, mikrointerakcje i sceny WebGL, które trzymają klatki także na telefonie.',
+    tools: ['Motion', 'Three.js', 'GLSL', 'Lenis'],
   },
   {
-    label: 'Backend i infra',
-    items: ['Node.js', 'Java · Spring', 'MySQL', 'PostgreSQL', 'Netlify'],
-  },
-  {
-    label: 'Narzędzia',
-    items: ['Bun', 'pnpm', 'ESLint', 'Prettier', 'Husky'],
+    title: 'Zaplecze',
+    body: 'API, bazy danych i narzędzia natywne. Wystarczająco dużo backendu, żeby projektować całość, a nie tylko warstwę widoku.',
+    tools: ['Node.js', 'Java · Spring', 'Swift', 'C', 'MySQL', 'PostgreSQL'],
   },
 ];
 
-export type ProcessStep = { n: string; title: string; body: string };
+export const scopeCopy = {
+  title: 'Trzy obszary, w których biorę odpowiedzialność za efekt.',
+};
 
-export const processSteps: readonly ProcessStep[] = [
-  {
-    n: '01',
-    title: 'Odkrywanie',
-    body: 'Cel, odbiorca, ograniczenia. Szukam jednej rzeczy, która ma zostać w pamięci.',
-  },
-  {
-    n: '02',
-    title: 'Kierunek',
-    body: 'Jedna wyraźna decyzja estetyczna. Wybór momentów, które naprawdę warto animować.',
-  },
-  {
-    n: '03',
-    title: 'Budowa',
-    body: 'Pionowe wycinki: prawdziwe komponenty, prawdziwa treść, prawdziwy ruch. Poprawki w trakcie, nie na końcu.',
-  },
-  {
-    n: '04',
-    title: 'Szlif',
-    body: 'Przebieg wydajnościowy, dostępnościowy i ruchowy. Detale, aż całość wydaje się przemyślana.',
-  },
-];
+export const recentCopy = {
+  title: 'Co robię ostatnio.',
+  lead: 'Ostatnie commity i tempo pracy z dwunastu tygodni, prosto z GitHuba.',
+  commits: (weeks: number) => `commitów w ostatnich ${weeks} tygodniach`,
+  activityLabel: 'Commity tygodniowo',
+  empty: 'GitHub chwilowo nie odpowiada — pokazuję ostatni zapisany stan.',
+};
 
 export const contactCopy = {
-  title: 'Zbudujmy coś przemyślanego.',
-  lead: 'Dostępny do wybranych projektów front-end i produktowych. Odpowiadam w ciągu jednego–dwóch dni.',
+  title: 'Napisz — odpowiadam w jeden, dwa dni.',
+  lead: 'Dostępny do projektów front-endowych i produktowych od października 2026.',
   fields: { name: 'Imię', email: 'E-mail', message: 'Wiadomość' },
-  submit: 'Wyślij wiadomość',
+  submit: 'Wyślij',
   sending: 'Wysyłam',
   sent: 'Wysłane',
   failed: 'Spróbuj ponownie',
+  note: 'Formularz obsługuje Netlify. Bez ciasteczek.',
+  honeypot: 'Nie wypełniaj tego pola:',
 };
 
 export const footer = {
-  credit: 'React · Three.js · Tailwind',
-  available: 'Dostępny od',
-  availableFrom: 'października 2026',
+  localTime: 'czas lokalny',
 };

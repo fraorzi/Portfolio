@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && bun scripts/prerender.ts",
+    "build": "bun scripts/fetch-github.ts && tsc -b && vite build && bun scripts/prerender.ts",
+    "github": "bun scripts/fetch-github.ts",
     "preview": "vite preview",
     "doctor": "bunx react-doctor@latest . --verbose",
     "doctor:trace": "bunx react-doctor@latest scan http://localhost:5173",

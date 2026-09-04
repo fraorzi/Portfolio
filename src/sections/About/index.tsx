@@ -34,15 +34,8 @@ export function About() {
 
   return (
     <SectionShell meta={meta}>
-      <div className="grid gap-12 md:grid-cols-12">
-        <div className="md:col-span-4">
-          <Monogram
-            draw="inView"
-            strokeWidth={1.25}
-            className="text-foreground h-20 w-20 md:h-24 md:w-24"
-          />
-        </div>
-        <div className="md:col-span-8">
+      <div className="grid gap-12 md:grid-cols-12 md:gap-8">
+        <div className="md:col-span-7">
           <TextReveal
             as="h2"
             text={about.title}
@@ -55,7 +48,7 @@ export function About() {
           />
           <p
             ref={bodyRef}
-            className="text-foreground text-md mt-8 max-w-[62ch] leading-relaxed"
+            className="text-foreground text-md mt-8 max-w-[60ch] leading-relaxed"
           >
             {words.map((word, i) => (
               <span key={`${word}-${i}`}>
@@ -70,6 +63,22 @@ export function About() {
               </span>
             ))}
           </p>
+        </div>
+
+        <div className="flex flex-col justify-between gap-10 md:col-span-4 md:col-start-9">
+          <Monogram
+            draw="inView"
+            strokeWidth={1.25}
+            className="text-foreground h-20 w-20 md:h-24 md:w-24"
+          />
+          <dl className="border-border grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t pt-5 text-xs">
+            {about.facts.map((fact) => (
+              <div key={fact.label} className="contents">
+                <dt className="text-muted-foreground">{fact.label}</dt>
+                <dd className="text-foreground">{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </div>
     </SectionShell>

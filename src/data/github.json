@@ -1,0 +1,68 @@
+{
+  "diffscope": {
+    "fullName": "fraorzi/diffscope_swift",
+    "url": "https://github.com/fraorzi/diffscope_swift",
+    "createdAt": "2026-07-27T11:26:28Z",
+    "pushedAt": "2026-09-04T09:12:18Z",
+    "stars": 0,
+    "commitCount": 226,
+    "languages": [
+      {
+        "name": "C",
+        "share": 0.8027195502627466
+      },
+      {
+        "name": "Swift",
+        "share": 0.17220133233107884
+      },
+      {
+        "name": "JavaScript",
+        "share": 0.011605382141171171
+      },
+      {
+        "name": "HTML",
+        "share": 0.00586802172395253
+      }
+    ],
+    "commits": [
+      {
+        "sha": "89102bb",
+        "message": "docs: partial verification of areas A, D and E, with the measurements that survived",
+        "date": "2026-09-04T09:12:16Z",
+        "url": "https://github.com/fraorzi/diffscope_swift/commit/89102bbbd341525c4b291e1207e88e0c75cd3d22"
+      },
+      {
+        "sha": "8c7d233",
+        "message": "docs: area C verified — DEC-083 removed the quietening and its revisit trigger has fired",
+        "date": "2026-09-03T19:48:51Z",
+        "url": "https://github.com/fraorzi/diffscope_swift/commit/8c7d233b8653d4066c9280e3aa3b4e6dd58de70e"
+      },
+      {
+        "sha": "500e568",
+        "message": "docs: 200 candidate diff-engine defects from the divergent phase",
+        "date": "2026-09-03T13:21:48Z",
+        "url": "https://github.com/fraorzi/diffscope_swift/commit/500e568ca1c499df213ec9d494d7995776abde08"
+      },
+      {
+        "sha": "462bb62",
+        "message": "fix: the window re-measures when the basis it measured against moves",
+        "date": "2026-09-03T00:17:46Z",
+        "url": "https://github.com/fraorzi/diffscope_swift/commit/462bb62d75d70d1ef7aff832f7ff35d5ee2a3930"
+      },
+      {
+        "sha": "b6594fb",
+        "message": "fix: a file caught mid-write is re-read rather than waited on forever",
+        "date": "2026-09-02T09:22:25Z",
+        "url": "https://github.com/fraorzi/diffscope_swift/commit/b6594fbe5bd31b0d1618c911128903271a59cd10"
+      },
+      {
+        "sha": "eb889a4",
+        "message": "perf: the repository-wide reads leave the main thread too",
+        "date": "2026-09-02T07:20:23Z",
+        "url": "https://github.com/fraorzi/diffscope_swift/commit/eb889a41598989ad24c823aa2d0b5b83f8155a77"
+      }
+    ],
+    "weekly": [0, 0, 0, 0, 0, 0, 34, 8, 82, 46, 25, 31],
+    "fetchedAt": "2026-09-04T09:17:51.594Z"
+  }
+}

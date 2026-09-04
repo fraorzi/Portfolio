@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { contact, footer } from '@/content/site';
+import { contact, footer, footerTheme } from '@/content/site';
 import { Monogram } from '@/components/marks/Monogram';
 
 const timeFormatter = new Intl.DateTimeFormat('pl-PL', {
@@ -8,15 +8,11 @@ const timeFormatter = new Intl.DateTimeFormat('pl-PL', {
   timeZone: contact.timeZone,
 });
 
-function formatTime(date: Date) {
-  return timeFormatter.format(date);
-}
-
 export function Footer() {
   const [time, setTime] = useState<string | null>(null);
 
   useEffect(() => {
-    const tick = () => setTime(formatTime(new Date()));
+    const tick = () => setTime(timeFormatter.format(new Date()));
     tick();
     const id = window.setInterval(tick, 30_000);
     return () => window.clearInterval(id);
@@ -24,24 +20,35 @@ export function Footer() {
 
   return (
     <footer
-      data-theme="light"
-      className="text-foreground relative w-full py-10"
+      data-theme={footerTheme}
+      className="bg-background text-foreground relative w-full"
     >
-      <div className="container-page flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-3">
+      <div className="container-page relative z-20 flex flex-col gap-6 py-10 text-xs md:flex-row md:items-center md:justify-between">
+        <p className="flex items-center gap-3">
           <Monogram className="h-5 w-5" />
-          <p className="text-2xs text-muted-foreground tracking-[0.18em] uppercase">
-            © {new Date().getFullYear()} Franciszek Orzechowski
-          </p>
-        </div>
-
-        <p className="text-2xs text-muted-foreground tracking-[0.18em] uppercase tabular-nums">
-          {contact.city} · {time ?? '--:--'}
+          <span>{contact.name}</span>
         </p>
 
-        <p className="text-2xs text-muted-foreground tracking-[0.18em] uppercase">
-          <span className="text-ochre">{footer.available}</span>{' '}
-          {footer.availableFrom} · {footer.credit}
+        <p className="text-muted-foreground flex flex-wrap gap-x-5 gap-y-1">
+          <a
+            href={`mailto:${contact.email}`}
+            className="hover:text-foreground transition-colors"
+          >
+            {contact.email}
+          </a>
+          <a
+            href={contact.github}
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-foreground transition-colors"
+          >
+            {contact.githubLabel}
+          </a>
+        </p>
+
+        <p className="text-muted-foreground tabular-nums">
+          {contact.city}, {footer.localTime}{' '}
+          <span className="text-foreground">{time ?? '--:--'}</span>
         </p>
       </div>
     </footer>
