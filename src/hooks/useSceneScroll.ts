@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import {
-  computeProgress,
+  computeFrame,
   measureSections,
-  mixBackground,
   sceneProgress,
 } from '@/lib/sceneProgress';
 
@@ -15,14 +14,12 @@ export function useSceneScroll(enabled: boolean) {
 
     const update = () => {
       frame = 0;
-      const { value, bgMix } = computeProgress(
-        layout,
-        window.scrollY,
-        window.innerHeight,
-      );
-      sceneProgress.value = value;
-      sceneProgress.bgMix = bgMix;
-      document.body.style.backgroundColor = mixBackground(bgMix);
+      const next = computeFrame(layout, window.scrollY, window.innerHeight);
+      sceneProgress.value = next.value;
+      sceneProgress.offset = next.offset;
+      sceneProgress.splitY = next.splitY;
+      sceneProgress.themeAbove = next.themeAbove;
+      sceneProgress.themeBelow = next.themeBelow;
     };
 
     const schedule = () => {
@@ -46,7 +43,6 @@ export function useSceneScroll(enabled: boolean) {
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', remeasure);
       if (frame) window.cancelAnimationFrame(frame);
-      document.body.style.backgroundColor = '';
     };
   }, [enabled]);
 }

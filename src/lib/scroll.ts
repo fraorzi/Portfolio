@@ -12,6 +12,14 @@ export function registerLenis(lenis: Lenis | null, reduced: boolean) {
   state.reduced = reduced;
 }
 
+export function lockScroll(locked: boolean) {
+  if (state.lenis) {
+    if (locked) state.lenis.stop();
+    else state.lenis.start();
+  }
+  document.documentElement.style.overflow = locked ? 'hidden' : '';
+}
+
 export function scrollToId(id: string, immediate = false): boolean {
   const target = document.getElementById(id);
   if (!target) return false;

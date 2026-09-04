@@ -1,16 +1,16 @@
-import { useCallback, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { LoadingScreen } from '@/components/layout/LoadingScreen';
 import { Navbar } from '@/components/layout/Navbar';
 import { SmoothScrollProvider } from '@/lib/lenis';
+import { refreshRepos } from '@/lib/repoStore';
 import { useMounted } from '@/hooks/useMounted';
 import { useSceneScroll } from '@/hooks/useSceneScroll';
 import { Scene } from '@/scene/Scene';
 import { Hero } from '@/sections/Hero';
 import { About } from '@/sections/About';
-import { Services } from '@/sections/Services';
 import { Projects } from '@/sections/Projects';
-import { Skills } from '@/sections/Skills';
-import { Process } from '@/sections/Process';
+import { Scope } from '@/sections/Scope';
+import { Recent } from '@/sections/Recent';
 import { Contact } from '@/sections/Contact';
 import { Footer } from '@/sections/Footer';
 
@@ -22,6 +22,10 @@ export default function App() {
   const introVisible = introPhase !== 'done';
 
   useSceneScroll(mounted);
+
+  useEffect(() => {
+    refreshRepos();
+  }, []);
 
   const handleExitStart = useCallback(() => setIntroPhase('exiting'), []);
   const handleComplete = useCallback(() => setIntroPhase('done'), []);
@@ -51,19 +55,14 @@ export default function App() {
 
       <Scene active={mounted} />
 
-      <div
-        aria-hidden={introVisible}
-        inert={introVisible ? true : undefined}
-        className="relative z-10"
-      >
+      <div aria-hidden={introVisible} inert={introVisible ? true : undefined}>
         <Navbar visible={introPhase !== 'active'} />
         <main>
           <Hero ready={introPhase !== 'active'} />
           <About />
-          <Services />
           <Projects />
-          <Skills />
-          <Process />
+          <Scope />
+          <Recent />
           <Contact />
         </main>
         <Footer />

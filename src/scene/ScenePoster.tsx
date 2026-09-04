@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-const COUNT = 260;
+const COUNT = 420;
 
 function createRandom(seed: number) {
   let state = seed;
@@ -16,17 +16,17 @@ export function ScenePoster() {
   const dots = useMemo(() => {
     const random = createRandom(7);
     return Array.from({ length: COUNT }, (_, i) => {
-      const theta = random() * Math.PI * 2;
-      const phi = Math.acos(2 * random() - 1);
-      const r = 170;
-      const x = 900 + r * Math.sin(phi) * Math.cos(theta);
-      const y = 330 + r * Math.cos(phi);
-      const depth = (Math.sin(phi) * Math.sin(theta) + 1) / 2;
+      const t = random() * Math.PI * 2;
+      const size = 78;
+      const spread = (random() - 0.5) * 14;
+      const x = 900 + (Math.sin(t) + 2 * Math.sin(2 * t)) * size + spread;
+      const y = 360 + (Math.cos(t) - 2 * Math.cos(2 * t)) * size + spread;
+      const depth = (Math.sin(3 * t) + 1) / 2;
       return {
         x,
         y,
-        r: 1 + depth * 1.8,
-        o: 0.15 + depth * 0.35,
+        r: 1 + depth * 1.6,
+        o: 0.2 + depth * 0.4,
         accent: i % 12 === 0,
       };
     });
@@ -37,7 +37,7 @@ export function ScenePoster() {
       viewBox="0 0 1280 720"
       preserveAspectRatio="xMidYMid slice"
       aria-hidden
-      className="text-foreground/60 absolute inset-0 hidden h-full w-full md:block"
+      className="text-paper absolute inset-0 hidden h-full w-full mix-blend-difference md:block"
     >
       {dots.map((d, i) => (
         <circle
@@ -47,7 +47,7 @@ export function ScenePoster() {
           r={d.r}
           fill="currentColor"
           opacity={d.o}
-          className={d.accent ? 'text-primary-500' : undefined}
+          className={d.accent ? 'text-primary-400' : undefined}
         />
       ))}
     </svg>

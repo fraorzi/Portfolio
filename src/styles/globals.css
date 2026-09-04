@@ -2,26 +2,9 @@
 @import '@fontsource-variable/space-grotesk/index.css';
 @import '@fontsource-variable/dm-sans/index.css';
 
-@font-face {
-  font-family: 'Cut Grotesk';
-  src: url('/fonts/CutGrotesk-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Cut Grotesk';
-  src: url('/fonts/CutGrotesk-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
 @theme {
   --font-display: 'Space Grotesk Variable', system-ui, sans-serif;
   --font-body: 'DM Sans Variable', system-ui, sans-serif;
-  --font-cut: 'Cut Grotesk', var(--font-display);
 
   --color-primary-50: #eaf4f1;
   --color-primary-100: #d3e9e4;
@@ -128,7 +111,11 @@
   body {
     @apply text-base;
     margin: 0;
-    overflow-x: hidden;
+  }
+
+  html,
+  body {
+    overflow-x: clip;
   }
 
   html::-webkit-scrollbar,
@@ -173,10 +160,6 @@
 @layer utilities {
   .container-page {
     @apply mx-auto w-full max-w-7xl px-6 md:px-10;
-  }
-
-  .eyebrow {
-    @apply text-2xs tracking-[0.32em] uppercase;
   }
 
   .no-italic {

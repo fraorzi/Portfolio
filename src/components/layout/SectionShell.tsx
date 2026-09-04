@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
-import { sections, type SectionMeta } from '@/content/site';
-import { SectionMark } from '@/components/marks/SectionMark';
+import type { SectionMeta } from '@/content/site';
 
 type SectionShellProps = {
   meta: SectionMeta;
@@ -16,27 +15,22 @@ export function SectionShell({
   className,
   contentClassName,
 }: SectionShellProps) {
-  const folio = `${String(meta.index).padStart(2, '0')} / ${String(
-    sections.length - 1,
-  ).padStart(2, '0')}`;
-
   return (
     <section
       id={meta.id}
       data-theme={meta.theme}
       data-scene-index={meta.index}
       className={cn(
-        'text-foreground relative w-full scroll-mt-24 py-28 md:py-40',
+        'bg-background text-foreground relative flex min-h-svh w-full scroll-mt-24 flex-col justify-end [--section-bg:var(--background)] [--section-fg:var(--foreground)] md:justify-center',
         className,
       )}
     >
-      <div className={cn('container-page relative', contentClassName)}>
-        <div className="text-muted-foreground mb-14 flex items-center gap-4 md:mb-20">
-          <SectionMark id={meta.id} className="text-primary-600 h-4 w-4" />
-          <span className="eyebrow">{meta.label}</span>
-          <span className="bg-border h-px flex-1" aria-hidden />
-          <span className="text-2xs text-ochre tabular-nums">{folio}</span>
-        </div>
+      <div
+        className={cn(
+          'container-page relative z-20 w-full pt-[36svh] pb-24 md:py-36',
+          contentClassName,
+        )}
+      >
         {children}
       </div>
     </section>
