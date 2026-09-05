@@ -91,12 +91,12 @@ const rings: Builder = (count, random, layout) => {
     const r = radius + spread;
     const x = Math.cos(t) * r;
     const z = Math.sin(t) * r;
-    out[i * 3] = x - 1.9 * layout.shiftX;
+    out[i * 3] = x + 2.5 * layout.shiftX;
     out[i * 3 + 1] =
       centers[ring] +
       z * 0.32 +
       (random() - 0.5) * 0.03 -
-      0.6 * layout.shiftX +
+      0.2 * layout.shiftX +
       layout.shiftY;
     out[i * 3 + 2] = z * 0.9;
   }
@@ -105,17 +105,17 @@ const rings: Builder = (count, random, layout) => {
 
 const helix: Builder = (count, random, layout) => {
   const out = new Float32Array(count * 3);
-  const length = 7.0 * layout.scale;
-  const radius = 0.75 * layout.scale;
-  const turns = 4.5;
+  const length = (7.0 - 3.6 * layout.shiftX) * layout.scale;
+  const radius = (0.75 - 0.25 * layout.shiftX) * layout.scale;
+  const turns = 4.5 - 1.5 * layout.shiftX;
   for (let i = 0; i < count; i += 1) {
     const t = i / count;
     const angle = t * Math.PI * 2 * turns;
     const jitter = (random() - 0.5) * 0.12;
-    out[i * 3] = (t - 0.5) * length;
+    out[i * 3] = (t - 0.5) * length - 2.0 * layout.shiftX;
     out[i * 3 + 1] =
       Math.cos(angle) * (radius + jitter) -
-      1.4 * layout.scale * layout.shiftX +
+      0.9 * layout.scale * layout.shiftX +
       layout.shiftY;
     out[i * 3 + 2] = Math.sin(angle) * (radius + jitter) - 0.6;
   }

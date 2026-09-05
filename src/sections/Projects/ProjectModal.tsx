@@ -60,7 +60,7 @@ export function ProjectModal({
         aria-labelledby={titleId}
         data-theme="light"
         transition={{ type: 'spring', stiffness: 210, damping: 28 }}
-        className="bg-background text-foreground relative max-h-[92svh] w-full max-w-4xl overflow-y-auto rounded-2xl shadow-[0_24px_80px_-24px_rgba(0,0,0,0.45)]"
+        className="bg-background text-foreground relative max-h-[92svh] w-full max-w-4xl overflow-y-auto rounded-2xl shadow-[0_8px_32px_-8px_rgba(0,0,0,0.18)]"
       >
         <motion.div
           initial={{ opacity: 0 }}
@@ -119,23 +119,16 @@ export function ProjectModal({
               ) : null}
             </dl>
 
-            <ul className="mt-6 flex flex-wrap gap-2">
-              {project.stack.map((item) => (
-                <li
-                  key={item}
-                  className="border-border text-2xs rounded-full border px-3 py-1 tracking-[0.12em] uppercase"
-                >
-                  {item}
-                </li>
-              ))}
-            </ul>
+            <p className="text-muted-foreground mt-6 text-xs">
+              {project.stack.join(', ')}
+            </p>
 
             {snapshot ? (
               <a
                 href={snapshot.url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-2xs hover:text-primary-600 mt-auto inline-flex items-center gap-1.5 pt-8 tracking-[0.16em] uppercase transition-colors"
+                className="hover:text-primary-600 mt-auto inline-flex items-center gap-1.5 pt-8 text-sm transition-colors"
               >
                 {projectsCopy.repoLink}
                 <ArrowUpRight className="h-3 w-3" aria-hidden />

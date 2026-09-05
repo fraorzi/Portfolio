@@ -13,10 +13,12 @@ import { sceneProgress } from '@/lib/sceneProgress';
 import { buildTargets } from '@/scene/targets';
 import { pointFragmentShader, pointVertexShader } from '@/scene/shaders';
 
-const INK = new Color('#12110f');
-const PAPER = new Color('#f4f1ea');
-const ACCENT = new Color('#0f6e63');
-const OCHRE = new Color('#c89b3c');
+function tokenColor(name: string) {
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return new Color(value);
+}
 
 export type PointFieldOptions = {
   container: HTMLElement;
@@ -64,6 +66,11 @@ export function createPointField({
   camera.position.set(0, 0, 6);
   const viewHeight = 2 * 6 * Math.tan((camera.fov * Math.PI) / 360);
 
+  const ink = tokenColor('--color-ink');
+  const paper = tokenColor('--color-paper');
+  const accent = tokenColor('--color-primary-600');
+  const ochre = tokenColor('--color-ochre');
+
   const material = new ShaderMaterial({
     vertexShader: pointVertexShader,
     fragmentShader: pointFragmentShader,
@@ -79,10 +86,10 @@ export function createPointField({
       uSplitY: { value: 2 },
       uThemeAbove: { value: 1 },
       uThemeBelow: { value: 1 },
-      uInk: { value: INK },
-      uPaper: { value: PAPER },
-      uAccent: { value: ACCENT },
-      uOchre: { value: OCHRE },
+      uInk: { value: ink },
+      uPaper: { value: paper },
+      uAccent: { value: accent },
+      uOchre: { value: ochre },
       uOpacity: { value: 0 },
       uStrength: { value: 1 },
     },

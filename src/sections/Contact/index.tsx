@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import { motion } from 'motion/react';
 import { ArrowUpRight } from 'lucide-react';
 import { contact, contactCopy, sections } from '@/content/site';
 import { SectionShell } from '@/components/layout/SectionShell';
@@ -7,10 +6,8 @@ import {
   StatefulButton,
   type ButtonState,
 } from '@/components/ui/button/StatefulButton';
-import { TextReveal } from '@/components/ui/TextReveal';
 
 const meta = sections[5];
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function Contact() {
   const [state, setState] = useState<ButtonState>('idle');
@@ -42,16 +39,10 @@ export function Contact() {
     <SectionShell meta={meta}>
       <div className="grid gap-12 md:grid-cols-12">
         <div className="md:col-span-5">
-          <TextReveal
-            as="h2"
-            text={contactCopy.title}
-            split="word"
-            whileInView
-            blur={4}
-            yOffset="30%"
-            className="text-2xl leading-tight tracking-tight"
-          />
-          <p className="text-muted-foreground mt-6 max-w-[40ch] text-sm">
+          <h2 className="font-display text-2xl leading-tight tracking-tight">
+            {contactCopy.title}
+          </h2>
+          <p className="text-muted-foreground mt-5 max-w-[40ch] text-sm leading-relaxed">
             {contactCopy.lead}
           </p>
           <a
@@ -85,29 +76,16 @@ export function Contact() {
             name="name"
             type="text"
             autoComplete="name"
-            index={0}
           />
           <Field
             label={contactCopy.fields.email}
             name="email"
             type="email"
             autoComplete="email"
-            index={1}
           />
-          <Field
-            label={contactCopy.fields.message}
-            name="message"
-            multiline
-            index={2}
-          />
+          <Field label={contactCopy.fields.message} name="message" multiline />
 
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ duration: 0.8, delay: 0.45, ease: EASE }}
-            className="flex items-center gap-4 pt-2"
-          >
+          <div className="flex flex-wrap items-center gap-4 pt-2">
             <StatefulButton
               type="submit"
               state={state}
@@ -115,14 +93,14 @@ export function Contact() {
               loadingText={contactCopy.sending}
               successText={contactCopy.sent}
               errorText={contactCopy.failed}
-              className="text-2xs h-9 px-5 tracking-[0.16em] uppercase"
+              className="h-9 px-4 text-sm"
             >
               {contactCopy.submit}
             </StatefulButton>
-            <span className="text-2xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               {contactCopy.note}
             </span>
-          </motion.div>
+          </div>
         </form>
       </div>
     </SectionShell>
@@ -132,7 +110,6 @@ export function Contact() {
 type FieldProps = {
   label: string;
   name: string;
-  index: number;
   type?: string;
   autoComplete?: string;
   multiline?: boolean;
@@ -141,7 +118,6 @@ type FieldProps = {
 function Field({
   label,
   name,
-  index,
   type = 'text',
   autoComplete,
   multiline = false,
@@ -152,21 +128,9 @@ function Field({
 
   return (
     <div className="relative">
-      <motion.span
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.8 }}
-        className="block overflow-hidden"
-      >
-        <motion.label
-          htmlFor={id}
-          variants={{ hidden: { y: '110%' }, visible: { y: '0%' } }}
-          transition={{ duration: 0.8, delay: index * 0.12, ease: EASE }}
-          className="text-2xs text-muted-foreground block tracking-[0.2em] uppercase"
-        >
-          {label}
-        </motion.label>
-      </motion.span>
+      <label htmlFor={id} className="text-muted-foreground block text-xs">
+        {label}
+      </label>
       {multiline ? (
         <textarea
           id={id}
@@ -185,17 +149,13 @@ function Field({
           className={inputClass}
         />
       )}
-      <motion.span
+      <span
         aria-hidden
-        initial={{ scaleX: 0 }}
-        whileInView={{ scaleX: 1 }}
-        viewport={{ once: true, amount: 0.8 }}
-        transition={{ duration: 1, delay: 0.15 + index * 0.12, ease: EASE }}
-        className="bg-border absolute inset-x-0 bottom-0 h-px origin-left"
+        className="bg-border absolute inset-x-0 bottom-0 h-px"
       />
       <span
         aria-hidden
-        className="bg-primary-500 absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] peer-focus:scale-x-100"
+        className="bg-primary-500 absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 transition-transform duration-500 ease-(--ease-out-expo) peer-focus:scale-x-100"
       />
     </div>
   );

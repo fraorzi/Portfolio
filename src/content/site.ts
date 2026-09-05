@@ -45,15 +45,15 @@ export const contact = {
 };
 
 export const hero = {
-  title: 'Front-end z rytmem. Backend bez tłumacza.',
-  lead: 'Franciszek Orzechowski — front-end developer. React, TypeScript, ruch i 3D w przeglądarce; po drugiej stronie Node, Java, Swift i bazy danych.',
+  title: 'Front-end developer. Interfejsy, ruch i\u00a03D w\u00a0przeglądarce',
+  lead: 'Franciszek Orzechowski, Warszawa. Na co dzień React i TypeScript; kiedy trzeba zejść niżej — Node, Java, Swift i bazy danych.',
   primaryCta: 'Zobacz projekt',
-  secondaryCta: 'Napisz',
+  secondaryCta: 'Napisz do mnie',
 };
 
 export const about = {
   title:
-    'Robię interfejsy, które są dopracowane i szybkie — i wiem, co dzieje się za nimi.',
+    'Piszę front-end od kilku lat. Backend znam na tyle, żeby projektować całość, nie tylko warstwę widoku',
   body: 'Pracuję głównie w React i TypeScript. Interesują mnie ruch, 3D w przeglądarce i te małe decyzje, przez które produkt wydaje się przemyślany. Ostatnio dużo czasu spędzam w Swift i C, pisząc narzędzie do przeglądu kodu. Znam też drugą stronę — Node, Java, bazy danych — więc z backendem rozmawiam bez tłumacza.',
   facts: [
     { label: 'Baza', value: 'Warszawa' },
@@ -92,8 +92,8 @@ export const projects: readonly Project[] = [
 ];
 
 export const projectsCopy = {
-  title: 'Jeden projekt na warsztacie, kolejny w drodze.',
-  lead: 'Karty czytają dane prosto z GitHuba: ostatni commit, języki, tempo pracy.',
+  title: 'Nad czym pracuję',
+  lead: 'Jeden projekt opublikowany, drugi w trakcie. Ostatni commit, języki i liczba commitów pochodzą z GitHuba.',
   open: 'Szczegóły projektu',
   close: 'Zamknij',
   repoLink: 'Repozytorium',
@@ -103,7 +103,7 @@ export const projectsCopy = {
   roleLabel: 'Rola',
   since: 'Start',
   upcoming: {
-    title: 'Następny projekt',
+    title: 'Drugi projekt',
     body: 'W trakcie. Repozytorium pojawi się tutaj, gdy będzie co pokazać.',
   },
 };
@@ -128,25 +128,25 @@ export const scope: readonly ScopeArea[] = [
   {
     title: 'Zaplecze',
     body: 'API, bazy danych i narzędzia natywne. Wystarczająco dużo backendu, żeby projektować całość, a nie tylko warstwę widoku.',
-    tools: ['Node.js', 'Java · Spring', 'Swift', 'C', 'MySQL', 'PostgreSQL'],
+    tools: ['Node.js', 'Java, Spring', 'Swift', 'C', 'MySQL', 'PostgreSQL'],
   },
 ];
 
 export const scopeCopy = {
-  title: 'Trzy obszary, w których biorę odpowiedzialność za efekt.',
+  title: 'Czym się zajmuję',
 };
 
 export const recentCopy = {
-  title: 'Co robię ostatnio.',
-  lead: 'Ostatnie commity i tempo pracy z dwunastu tygodni, prosto z GitHuba.',
+  title: 'Ostatnie commity',
+  lead: 'Tempo pracy z ostatnich dwunastu tygodni.',
   commits: (weeks: number) => `commitów w ostatnich ${weeks} tygodniach`,
   activityLabel: 'Commity tygodniowo',
   empty: 'GitHub chwilowo nie odpowiada — pokazuję ostatni zapisany stan.',
 };
 
 export const contactCopy = {
-  title: 'Napisz — odpowiadam w jeden, dwa dni.',
-  lead: 'Dostępny do projektów front-endowych i produktowych od października 2026.',
+  title: 'Napisz do mnie',
+  lead: 'Odpowiadam w jeden, dwa dni. Dostępny do projektów front-endowych i produktowych od października 2026.',
   fields: { name: 'Imię', email: 'E-mail', message: 'Wiadomość' },
   submit: 'Wyślij',
   sending: 'Wysyłam',
