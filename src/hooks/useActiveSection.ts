@@ -1,45 +1,36 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useSyncExternalStore, type RefObject } from 'react';
 import { sections, type SectionId } from '@/content/site';
 
-export function useActiveSection(enabled: boolean): SectionId {
-  const [active, setActive] = useState<SectionId>('hero');
+function subscribe(onChange: () => void) {
+  window.addEventListener('scroll', onChange, { passive: true });
+  window.addEventListener('resize', onChange);
+  return () => {
+    window.removeEventListener('scroll', onChange);
+    window.removeEventListener('resize', onChange);
+  };
+}
 
-  useEffect(() => {
-    if (!enabled) return;
+function getServerSnapshot(): SectionId {
+  return 'hero';
+}
 
-    const visible = new Map<SectionId, number>();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          visible.set(
-            entry.target.id as SectionId,
-            entry.isIntersecting ? entry.intersectionRect.height : 0,
-          );
-        }
-        let best: SectionId | null = null;
-        let bestHeight = 0;
-        for (const meta of sections) {
-          const height = visible.get(meta.id) ?? 0;
-          if (height > bestHeight) {
-            bestHeight = height;
-            best = meta.id;
-          }
-        }
-        if (best) setActive(best);
-      },
-      {
-        rootMargin: '-45% 0px -45% 0px',
-        threshold: [0, 0.25, 0.5, 0.75, 1],
-      },
-    );
-
-    for (const meta of sections) {
-      const el = document.getElementById(meta.id);
-      if (el) observer.observe(el);
+export function useActiveSection(
+  enabled: boolean,
+  anchorRef: RefObject<HTMLElement | null>,
+): SectionId {
+  const getSnapshot = useCallback((): SectionId => {
+    if (!enabled) return 'hero';
+    const anchor = anchorRef.current?.getBoundingClientRect();
+    const y = anchor ? anchor.top + anchor.height / 2 : 0;
+    let active: SectionId = 'hero';
+    for (const section of sections) {
+      const element = document.getElementById(section.id);
+      if (element && element.getBoundingClientRect().top <= y) {
+        active = section.id;
+      }
     }
+    return active;
+  }, [enabled, anchorRef]);
 
-    return () => observer.disconnect();
-  }, [enabled]);
-
-  return active;
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

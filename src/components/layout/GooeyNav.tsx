@@ -2,7 +2,12 @@ import { useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/cn';
 import { getGooeyNavPath, type NavSegment } from '@/lib/gooeyNav';
-import { navCopy, type SectionId, type SectionMeta } from '@/content/site';
+import {
+  contact,
+  navCopy,
+  type SectionId,
+  type SectionMeta,
+} from '@/content/site';
 import { Monogram } from '@/components/marks/Monogram';
 
 type GooeyNavProps = {
@@ -28,12 +33,12 @@ export function GooeyNav({
   let offset = 0;
   const segments: NavSegment[] = [];
   for (const [index, item] of items.entries()) {
-    const size = vertical ? 44 : item.id === 'hero' ? 52 : 88;
+    const size = vertical ? 44 : item.id === 'hero' ? 232 : 88;
     segments.push({ offset, size });
     offset += size;
     if (index < items.length - 1) {
       offset +=
-        item.id === engaged || items[index + 1]?.id === engaged ? 22 : 6;
+        item.id === engaged || items[index + 1]?.id === engaged ? 26 : 10;
     }
   }
 
@@ -91,14 +96,17 @@ export function GooeyNav({
                 onNavigate(item.id);
               }}
               className={cn(
-                'font-display text-2xs hover:text-primary-600 focus-visible:text-primary-600 active:text-primary-700 relative flex h-full w-full items-center justify-center rounded-full tracking-[0.16em] whitespace-nowrap uppercase transition-colors duration-200',
+                'font-display text-2xs hover:text-primary-600 focus-visible:text-primary-600 active:text-primary-700 relative flex h-full w-full items-center justify-center gap-2.5 rounded-full tracking-[0.16em] whitespace-nowrap uppercase transition-colors duration-200',
                 active === item.id
                   ? 'text-foreground'
                   : 'text-muted-foreground',
               )}
             >
               {item.id === 'hero' ? (
-                <Monogram className="h-5 w-5" />
+                <>
+                  <Monogram className="h-5 w-5" />
+                  <span>{contact.name}</span>
+                </>
               ) : (
                 item.label
               )}

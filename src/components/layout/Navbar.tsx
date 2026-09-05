@@ -3,7 +3,13 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
 import { scrollToId } from '@/lib/scroll';
 import { getGooeyNavPath } from '@/lib/gooeyNav';
-import { navCopy, navItems, sections, type SectionId } from '@/content/site';
+import {
+  contact,
+  navCopy,
+  navItems,
+  sections,
+  type SectionId,
+} from '@/content/site';
 import { useActiveSection } from '@/hooks/useActiveSection';
 import { useMounted } from '@/hooks/useMounted';
 import { GooeyNav } from '@/components/layout/GooeyNav';
@@ -15,10 +21,10 @@ type NavbarProps = {
 
 export function Navbar({ visible }: NavbarProps) {
   const mounted = useMounted();
-  const active = useActiveSection(mounted);
   const reduce = useReducedMotion();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
+  const active = useActiveSection(mounted, rootRef);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const sectionTheme =
     sections.find((section) => section.id === active)?.theme ?? 'dark';
@@ -28,7 +34,7 @@ export function Navbar({ visible }: NavbarProps) {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setOpen(false);
-        toggleRef.current?.focus();
+        toggleRef.current?.focus({ preventScroll: true });
       }
     };
     const onPointer = (event: PointerEvent) => {
@@ -50,7 +56,7 @@ export function Navbar({ visible }: NavbarProps) {
     scrollToId(id);
     if (open) {
       setOpen(false);
-      toggleRef.current?.focus();
+      toggleRef.current?.focus({ preventScroll: true });
     }
   };
 
@@ -72,20 +78,35 @@ export function Navbar({ visible }: NavbarProps) {
         }}
         className="pointer-events-auto relative"
       >
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <GooeyNav items={sections} active={active} onNavigate={go} />
         </div>
-        <div className="relative md:hidden">
-          <div className="relative flex h-11 w-[178px] gap-1.5">
+        <div className="relative lg:hidden">
+          <div className="relative flex h-11 w-[182px] gap-2.5 sm:w-[370px]">
             <svg
               aria-hidden
-              className="text-background pointer-events-none absolute inset-0 h-full w-full"
+              className="text-background pointer-events-none absolute inset-0 h-full w-full sm:hidden"
             >
               <path
                 d={getGooeyNavPath({
                   segments: [
                     { offset: 0, size: 44 },
-                    { offset: 50, size: 128 },
+                    { offset: 54, size: 128 },
+                  ],
+                  thickness: 44,
+                })}
+                fill="currentColor"
+              />
+            </svg>
+            <svg
+              aria-hidden
+              className="text-background pointer-events-none absolute inset-0 hidden h-full w-full sm:block"
+            >
+              <path
+                d={getGooeyNavPath({
+                  segments: [
+                    { offset: 0, size: 232 },
+                    { offset: 242, size: 128 },
                   ],
                   thickness: 44,
                 })}
@@ -99,9 +120,12 @@ export function Navbar({ visible }: NavbarProps) {
                 event.preventDefault();
                 go('hero');
               }}
-              className="text-foreground hover:text-primary-600 relative flex h-11 w-11 items-center justify-center rounded-full transition-colors"
+              className="text-foreground hover:text-primary-600 relative flex h-11 w-11 items-center justify-center gap-2.5 rounded-full transition-colors sm:w-[232px]"
             >
               <Monogram className="h-5 w-5" />
+              <span className="font-display text-2xs hidden tracking-[0.16em] whitespace-nowrap uppercase sm:inline">
+                {contact.name}
+              </span>
             </a>
             <button
               ref={toggleRef}
