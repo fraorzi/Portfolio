@@ -1,12 +1,39 @@
 import { SCENE_STOPS } from '@/lib/sceneProgress';
 
-export type TargetSet = {
-  positions: Float32Array[];
-  thread: Float32Array;
-  seeds: Float32Array;
+export type TrailGeometry = {
+  positions: Float32Array;
+  spines: Float32Array;
+  info: Float32Array;
+  reach: readonly number[];
 };
 
-function createRandom(seed: number) {
+export type TrailLayout = {
+  wide: boolean;
+  scale: number;
+  halfWidth: number;
+};
+
+type Vec3 = readonly [number, number, number];
+type Random = () => number;
+
+type ShapeInfo = {
+  entry: Vec3;
+  exit: Vec3;
+  axis: readonly [Vec3, Vec3];
+  reach: number;
+};
+type ShapeBuilder = (
+  out: Float32Array,
+  start: number,
+  count: number,
+  random: Random,
+  layout: TrailLayout,
+) => ShapeInfo;
+
+const THREAD_SHARE = 0.2;
+const TAU = Math.PI * 2;
+
+function createRandom(seed: number): Random {
   let state = seed;
   return () => {
     state = (state + 0x6d2b79f5) | 0;
@@ -16,165 +43,375 @@ function createRandom(seed: number) {
   };
 }
 
-type Layout = { shiftX: number; shiftY: number; scale: number };
-type Builder = (
-  count: number,
-  random: () => number,
-  layout: Layout,
-) => Float32Array;
-
-function tube(random: () => number, radius: number) {
-  const angle = random() * Math.PI * 2;
+function tube(random: Random, radius: number) {
+  const angle = random() * TAU;
   const r = radius * Math.sqrt(random());
   return [Math.cos(angle) * r, Math.sin(angle) * r] as const;
 }
 
-const knot: Builder = (count, random, layout) => {
-  const out = new Float32Array(count * 3);
-  const size = 0.5 * layout.scale;
+function put(out: Float32Array, i: number, x: number, y: number, z: number) {
+  out[i * 3] = x;
+  out[i * 3 + 1] = y;
+  out[i * 3 + 2] = z;
+}
+
+function rotateZ(x: number, y: number, angle: number) {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  return [x * c - y * s, x * s + y * c] as const;
+}
+
+function smooth(t: number) {
+  return t * t * (3 - 2 * t);
+}
+
+function projectOnSegment(p: Vec3, a: Vec3, b: Vec3): Vec3 {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const dz = b[2] - a[2];
+  const length = dx * dx + dy * dy + dz * dz;
+  const t =
+    length === 0
+      ? 0
+      : Math.min(
+          1,
+          Math.max(
+            0,
+            ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy + (p[2] - a[2]) * dz) /
+              length,
+          ),
+        );
+  return [a[0] + dx * t, a[1] + dy * t, a[2] + dz * t];
+}
+
+const knot: ShapeBuilder = (out, start, count, random, { scale }) => {
+  const sx = 0.5 * scale;
+  const sy = 0.46 * scale;
+  const sz = 0.32 * scale;
+  const lift = 0.2 * scale;
+  const lie = 1.0;
+  const point = (t: number): Vec3 => {
+    const y = (Math.cos(t) - 2 * Math.cos(2 * t)) * sy;
+    const z = -Math.sin(3 * t) * sz;
+    return [
+      (Math.sin(t) + 2 * Math.sin(2 * t)) * sx,
+      y * Math.cos(lie) - z * Math.sin(lie) + lift,
+      y * Math.sin(lie) + z * Math.cos(lie),
+    ];
+  };
   for (let i = 0; i < count; i += 1) {
-    const t = random() * Math.PI * 2;
-    const [dx, dy] = tube(random, 0.07 * layout.scale);
-    const x = (Math.sin(t) + 2 * Math.sin(2 * t)) * size;
-    const y = (Math.cos(t) - 2 * Math.cos(2 * t)) * size;
-    const z = -Math.sin(3 * t) * size;
-    out[i * 3] = x + dx + 1.5 * layout.shiftX;
-    out[i * 3 + 1] =
-      y + dy + 0.6 * layout.scale * layout.shiftX + layout.shiftY;
-    out[i * 3 + 2] = z;
+    const [x, y, z] = point(random() * TAU);
+    const [dx, dy] = tube(random, 0.07 * scale);
+    put(out, start + i, x + dx, y + dy, z);
   }
-  return out;
+  const rightmost = Math.acos((Math.sqrt(129) - 1) / 16);
+  const exit = point(rightmost);
+  const reach = 2.6 * sx + 0.1;
+  return {
+    entry: point(Math.PI),
+    exit,
+    axis: [
+      [-reach, exit[1], exit[2]],
+      [reach, exit[1], exit[2]],
+    ],
+    reach,
+  };
 };
 
-const orbit: Builder = (count, random, layout) => {
-  const out = new Float32Array(count * 3);
-  const radius = 1.1 * layout.scale;
-  const tilt = 0.55;
+const orbit: ShapeBuilder = (out, start, count, random, { scale }) => {
+  const radius = 1.0 * scale;
+  const tilt = 0.42;
+  const lean = 0.3;
+  const depth = -0.4;
   for (let i = 0; i < count; i += 1) {
-    const t = random() * Math.PI * 2;
-    const [dx, dy] = tube(random, 0.07 * layout.scale);
-    const x = Math.cos(t) * radius;
-    const z = Math.sin(t) * radius;
-    out[i * 3] = x + dx + 1.9 * layout.shiftX;
-    out[i * 3 + 1] = z * Math.sin(tilt) + dy + 0.15 + layout.shiftY;
-    out[i * 3 + 2] = z * Math.cos(tilt) - 0.4;
+    const t = random() * TAU;
+    const [dx, dy] = tube(random, 0.07 * scale);
+    const ring = Math.sin(t) * radius;
+    const [x, y] = rotateZ(Math.cos(t) * radius, ring * Math.sin(tilt), lean);
+    put(out, start + i, x + dx, y + dy, ring * Math.cos(tilt) + depth);
   }
-  return out;
+  const [ex, ey] = rotateZ(radius, 0, lean);
+  const end: Vec3 = [ex, ey, depth];
+  return {
+    entry: end,
+    exit: end,
+    axis: [[-ex, -ey, depth], end],
+    reach: radius + 0.1,
+  };
 };
 
-const braid: Builder = (count, random, layout) => {
-  const out = new Float32Array(count * 3);
-  const length = 8.5 * layout.scale;
-  const amplitude = 0.55 * layout.scale;
+const braid: ShapeBuilder = (
+  out,
+  start,
+  count,
+  random,
+  { scale, halfWidth },
+) => {
+  const half = Math.min(2.3 * scale, 0.62 * halfWidth);
+  const amplitude = 0.38 * scale;
+  const depth = -0.8;
   for (let i = 0; i < count; i += 1) {
-    const strand = i % 2;
     const t = random();
-    const phase = strand === 0 ? 0 : Math.PI;
-    const angle = t * Math.PI * 4 + phase;
-    const [dx, dy] = tube(random, 0.06 * layout.scale);
-    out[i * 3] = (t - 0.5) * length + dx;
-    out[i * 3 + 1] =
-      Math.sin(angle) * amplitude + dy + 0.35 * layout.scale + layout.shiftY;
-    out[i * 3 + 2] = Math.cos(angle) * amplitude * 0.6 - 1.4;
+    const angle = t * TAU * 2 + (i % 2) * Math.PI;
+    const [dx, dy] = tube(random, 0.06 * scale);
+    put(
+      out,
+      start + i,
+      (t * 2 - 1) * half + dx,
+      Math.sin(angle) * amplitude + dy,
+      Math.cos(angle) * amplitude * 0.6 + depth,
+    );
   }
-  return out;
+  return {
+    entry: [half, 0, depth],
+    exit: [-half, 0, depth],
+    axis: [
+      [-half, 0, depth],
+      [half, 0, depth],
+    ],
+    reach: half + 0.1,
+  };
 };
 
-const rings: Builder = (count, random, layout) => {
-  const out = new Float32Array(count * 3);
-  const radius = 0.7 * layout.scale;
-  const centers = [0.9, 0, -0.9].map((y) => y * layout.scale);
+const rings: ShapeBuilder = (out, start, count, random, { scale }) => {
+  const radius = 0.62 * scale;
+  const gap = 0.85 * scale;
+  const squash = 0.32;
   for (let i = 0; i < count; i += 1) {
-    const ring = i % 3;
-    const t = random() * Math.PI * 2;
-    const spread = (random() - 0.5) * 0.08;
-    const r = radius + spread;
-    const x = Math.cos(t) * r;
+    const ring = (i % 3) - 1;
+    const t = random() * TAU;
+    const r = radius + (random() - 0.5) * 0.08;
     const z = Math.sin(t) * r;
-    out[i * 3] = x + 2.5 * layout.shiftX;
-    out[i * 3 + 1] =
-      centers[ring] +
-      z * 0.32 +
-      (random() - 0.5) * 0.03 -
-      0.2 * layout.shiftX +
-      layout.shiftY;
-    out[i * 3 + 2] = z * 0.9;
+    put(
+      out,
+      start + i,
+      Math.cos(t) * r,
+      -ring * gap + z * squash + (random() - 0.5) * 0.03,
+      z * 0.9,
+    );
   }
-  return out;
+  const top = gap + radius * squash;
+  return {
+    entry: [0, top, radius * 0.9],
+    exit: [0, -top, -radius * 0.9],
+    axis: [
+      [0, top, 0],
+      [0, -top, 0],
+    ],
+    reach: radius + 0.1,
+  };
 };
 
-const helix: Builder = (count, random, layout) => {
-  const out = new Float32Array(count * 3);
-  const length = (7.0 - 3.6 * layout.shiftX) * layout.scale;
-  const radius = (0.75 - 0.25 * layout.shiftX) * layout.scale;
-  const turns = 4.5 - 1.5 * layout.shiftX;
+const helix: ShapeBuilder = (
+  out,
+  start,
+  count,
+  random,
+  { scale, halfWidth },
+) => {
+  const half = Math.min(2.1 * scale, 0.6 * halfWidth);
+  const radius = 0.3 * scale;
+  const turns = 5;
+  const depth = -0.3;
   for (let i = 0; i < count; i += 1) {
     const t = i / count;
-    const angle = t * Math.PI * 2 * turns;
-    const jitter = (random() - 0.5) * 0.12;
-    out[i * 3] = (t - 0.5) * length - 2.0 * layout.shiftX;
-    out[i * 3 + 1] =
-      Math.cos(angle) * (radius + jitter) -
-      0.9 * layout.scale * layout.shiftX +
-      layout.shiftY;
-    out[i * 3 + 2] = Math.sin(angle) * (radius + jitter) - 0.6;
+    const angle = t * TAU * turns;
+    const r = radius + (random() - 0.5) * 0.1;
+    put(
+      out,
+      start + i,
+      (t * 2 - 1) * half,
+      Math.cos(angle) * r,
+      Math.sin(angle) * r + depth,
+    );
   }
-  return out;
+  return {
+    entry: [half, 0, depth],
+    exit: [-half, 0, depth],
+    axis: [
+      [-half, 0, depth],
+      [half, 0, depth],
+    ],
+    reach: half + 0.1,
+  };
 };
 
-const coil: Builder = (count, random, layout) => {
-  const out = new Float32Array(count * 3);
-  const turns = 4;
-  const outer = 2.1 * layout.scale;
+const loop: ShapeBuilder = (out, start, count, random, { scale }) => {
+  const a = 1.2 * scale;
+  const depth = -0.4;
   for (let i = 0; i < count; i += 1) {
-    const t = Math.sqrt(random());
-    const angle = t * Math.PI * 2 * turns;
-    const r = outer * (1 - t * 0.85);
-    const [dx, dy] = tube(random, 0.06 * layout.scale);
-    out[i * 3] = Math.cos(angle) * r + dx - 1.9 * layout.shiftX;
-    out[i * 3 + 1] =
-      Math.sin(angle) * r * 0.55 +
-      dy -
-      1.15 * layout.scale * layout.shiftX +
-      layout.shiftY;
-    out[i * 3 + 2] = -1.6 + t * 1.8;
+    const t = random() * TAU;
+    const [dx, dy] = tube(random, 0.07 * scale);
+    const d = 1 + Math.sin(t) * Math.sin(t);
+    put(
+      out,
+      start + i,
+      (a * Math.cos(t)) / d + dx,
+      (a * Math.sin(t) * Math.cos(t)) / d + dy,
+      Math.sin(2 * t) * 0.3 + depth,
+    );
   }
-  return out;
+  return {
+    entry: [-a, 0, depth],
+    exit: [a, 0, depth],
+    axis: [
+      [-a, 0, depth],
+      [a, 0, depth],
+    ],
+    reach: a + 0.1,
+  };
 };
 
-const thread: Builder = (count, random, layout) => {
-  const out = new Float32Array(count * 3);
-  const span = 9;
+const shapes: readonly ShapeBuilder[] = [
+  knot,
+  orbit,
+  braid,
+  rings,
+  helix,
+  loop,
+];
+
+const WIDE_ANCHORS: readonly { fromRight: number; y: number }[] = [
+  { fromRight: 2.0, y: 0.45 },
+  { fromRight: 1.3, y: 0.3 },
+  { fromRight: 2.5, y: 1.4 },
+  { fromRight: 0.85, y: 0 },
+  { fromRight: 2.4, y: -1.75 },
+  { fromRight: 2.1, y: 1.35 },
+  { fromRight: 0.4, y: 0 },
+];
+
+const NARROW_EDGE = 1.0;
+const NARROW_HERO_DROP = -0.45;
+const LEFT_MARGIN = 0.25;
+
+export function regionAnchor(
+  region: number,
+  layout: TrailLayout,
+  reach: readonly number[],
+) {
+  const footer = region === SCENE_STOPS;
+  if (!layout.wide) {
+    return {
+      x: footer ? layout.halfWidth * NARROW_EDGE : 0,
+      y: region === 0 ? NARROW_HERO_DROP : 0,
+    };
+  }
+  const anchor = WIDE_ANCHORS[region];
+  const leftmost = -layout.halfWidth + LEFT_MARGIN + (reach[region] ?? 0);
+  return {
+    x: Math.max(leftmost, layout.halfWidth - anchor.fromRight),
+    y: anchor.y,
+  };
+}
+
+type ThreadSpec = {
+  start: number;
+  count: number;
+  region: number;
+  from: Vec3;
+  to: Vec3;
+  via: number | null;
+};
+
+function writeThread(
+  positions: Float32Array,
+  spines: Float32Array,
+  info: Float32Array,
+  spec: ThreadSpec,
+  random: Random,
+  layout: TrailLayout,
+) {
+  const { start, count, region, from, to, via } = spec;
+  const last = region === SCENE_STOPS - 1;
+  const sway = 0.16 * layout.scale;
   for (let i = 0; i < count; i += 1) {
     const t = random();
-    const y = (t - 0.5) * span;
-    const [dx, dz] = tube(random, 0.05);
-    out[i * 3] =
-      Math.sin(y * 1.15) * 0.45 * layout.scale + dx + 1.6 * layout.shiftX;
-    out[i * 3 + 1] = y + layout.shiftY;
-    out[i * 3 + 2] = Math.cos(y * 0.8) * 0.3 + dz - 0.5;
+    const s = smooth(t);
+    const bell = Math.sin(t * Math.PI);
+    const radius = 0.035 + 0.05 * (1 - bell) * (1 - bell);
+    const [dx, dz] = tube(random, radius);
+    let x = from[0] + (to[0] - from[0]) * s;
+    x +=
+      via === null
+        ? Math.sin(t * 4.2 + region) * sway * bell
+        : (via - x) * Math.sqrt(bell);
+    const y = from[1] + (to[1] - from[1]) * t;
+    const z = from[2] + (to[2] - from[2]) * s;
+    put(positions, start + i, x + dx, y, z + dz);
+    put(spines, start + i, x, y, z);
+    const fade = last
+      ? 1 - smooth(Math.min(1, Math.max(0, (t - 0.93) / 0.07)))
+      : 1;
+    const j = (start + i) * 4;
+    info[j] = random();
+    info[j + 1] = region;
+    info[j + 2] = t;
+    info[j + 3] = fade;
   }
-  return out;
-};
+}
 
-const builders: Builder[] = [knot, orbit, braid, rings, helix, coil];
-
-export function buildTargets(count: number, wide: boolean): TargetSet {
-  if (builders.length !== SCENE_STOPS) {
-    throw new Error('scene: target builders must match section count');
+export function buildTrail(count: number, layout: TrailLayout): TrailGeometry {
+  if (shapes.length !== SCENE_STOPS) {
+    throw new Error('scene: shape builders must match section count');
   }
-  const layout: Layout = wide
-    ? { shiftX: 1, shiftY: 0, scale: 1 }
-    : { shiftX: 0, shiftY: 1.2, scale: 0.6 };
-  const positions = builders.map((build, i) =>
-    build(count, createRandom(1000 + i * 7919), layout),
-  );
-  const seedRandom = createRandom(42);
-  const seeds = new Float32Array(count);
-  for (let i = 0; i < count; i += 1) seeds[i] = seedRandom();
+  const positions = new Float32Array(count * 3);
+  const spines = new Float32Array(count * 3);
+  const info = new Float32Array(count * 4);
+
+  const threadCount = Math.floor((count * THREAD_SHARE) / SCENE_STOPS);
+  const shapeTotal = count - threadCount * SCENE_STOPS;
+  const shapeCount = Math.floor(shapeTotal / SCENE_STOPS);
+  const via = layout.wide ? null : layout.halfWidth * NARROW_EDGE;
+
+  const infos: ShapeInfo[] = [];
+  let cursor = 0;
+  shapes.forEach((build, region) => {
+    const random = createRandom(1000 + region * 7919);
+    const n = region === SCENE_STOPS - 1 ? shapeTotal - cursor : shapeCount;
+    const shape = build(positions, cursor, n, random, layout);
+    infos.push(shape);
+    for (let i = 0; i < n; i += 1) {
+      const p = cursor + i;
+      const spine = projectOnSegment(
+        [positions[p * 3], positions[p * 3 + 1], positions[p * 3 + 2]],
+        shape.axis[0],
+        shape.axis[1],
+      );
+      put(spines, p, spine[0], spine[1], spine[2]);
+      const j = p * 4;
+      info[j] = random();
+      info[j + 1] = region;
+      info[j + 2] = 0;
+      info[j + 3] = 1;
+    }
+    cursor += n;
+  });
+
+  for (let region = 0; region < SCENE_STOPS; region += 1) {
+    const next = infos[region + 1];
+    writeThread(
+      positions,
+      spines,
+      info,
+      {
+        start: cursor,
+        count: threadCount,
+        region,
+        from: infos[region].exit,
+        to: next ? next.entry : [0, 0, 0],
+        via,
+      },
+      createRandom(500 + region * 131),
+      layout,
+    );
+    cursor += threadCount;
+  }
+
   return {
     positions,
-    thread: thread(count, createRandom(777), layout),
-    seeds,
+    spines,
+    info,
+    reach: [...infos.map((shape) => shape.reach), 0],
   };
 }

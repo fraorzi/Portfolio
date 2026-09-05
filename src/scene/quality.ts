@@ -1,8 +1,8 @@
 export type QualityTier = 'high' | 'mid' | 'poster';
 
 export const POINT_COUNT: Record<Exclude<QualityTier, 'poster'>, number> = {
-  high: 24000,
-  mid: 9000,
+  high: 54000,
+  mid: 21000,
 };
 
 type NavigatorHints = Navigator & { deviceMemory?: number };

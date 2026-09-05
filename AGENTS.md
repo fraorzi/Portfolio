@@ -84,12 +84,12 @@ Hover: colour / border / scale ≤ 1.02. `prefers-reduced-motion`: base CSS stri
 
 ### 3.6 Scene (`src/scene/`)
 
-- `Scene.tsx` picks a tier (`quality.ts`: high 24k / mid 9k / poster) from `deviceMemory`, `hardwareConcurrency`, pointer + viewport; downgrades on slow frames (`pointField.ts` probe after 2.5 s). Poster is `ScenePoster.tsx` (SVG knot, `mix-blend-difference`, desktop only).
-- `targets.ts` builds one line-based shape per section — knot, orbit, braid, rings, helix, coil — plus a vertical `thread`. Shapes are placed beside content (right column on desktop, top band on mobile) via the `layout` object.
-- `shaders.ts`: `uProgress` is the sum of boundary crossings (0 → 5). Between integers the points collapse into the thread and re-form as the next shape (`viaThread`), so a section boundary on screen reads as a line running between sections.
-- Colour: per point, `mix(uInk, uPaper, theme)` where `theme` is chosen by the point's NDC y against `uSplitY` (the nearest section edge on screen, from `src/lib/sceneProgress.ts`). Points above the edge take the theme of the section above, below take the one below. ~8% primary, ~1% ochre.
-- `sceneProgress.offset`: how far the current section's top has scrolled past the viewport (≤ 0.55 vh); `pointField.ts` moves the camera so the shape scrolls away with its section instead of hovering over text.
-- Pointer parallax on fine pointers only. dpr ≤ 1.5 desktop, 1 mobile. Keep it calm: no bursts, no bloom, no neon.
+- `Scene.tsx` picks a tier (`quality.ts`: high 54k / mid 21k / poster) from `deviceMemory`, `hardwareConcurrency`, pointer + viewport; downgrades on slow frames (`pointField.ts` probe after 2.5 s). Poster is `ScenePoster.tsx` (SVG knot, `mix-blend-difference`, desktop only).
+- The field is one continuous trail baked in page space: `targets.ts` builds a shape per section — knot (lying, horizontal), orbit, braid, rings, helix, loop — and a thin thread from each shape's `exit` to the next shape's `entry` (the last one dies out inside the footer). Nothing morphs over time; a point's shape is decided by where it sits on the page. ~20% of points belong to threads.
+- Placement: each point stores an offset from its region anchor (`aInfo` = seed, region, span along thread, fade). `pointField.ts` derives `uAnchors[7]` from the measured section tops (`src/lib/sceneProgress.ts`, refreshed by `useSceneLayout` on resize/ResizeObserver) — desktop: section centre + `WIDE_ANCHORS` offsets measured from the right viewport edge (so shapes hug the right column and threads run in the margin); mobile: top band (0.2 vh) with the thread at the right edge. The camera follows `window.scrollY` exactly, so shapes stay locked to their sections.
+- Colour: per point, `mix(uInk, uPaper, theme)` where `theme` comes from the point's world y against `uEdges` (section tops in world units) — exact per section, never split by screen position. ~8% primary, ~1% ochre.
+- Motion: `drift()` wobble, `uSmear` (smoothed scroll velocity, ≤ 0.45 world units) drags points behind the camera by seed so the line smears into a trail while scrolling, pointer parallax via a small camera offset on fine pointers only. No continuous rotation — it drifted shapes off their sections. dpr ≤ 1.5 desktop, 1 mobile. Keep it calm: no bursts, no bloom, no neon.
+- Legibility is handled by composition (shapes sit in empty bands, threads in gutters), not by text halos or masks.
 
 ### 3.7 Shell
 

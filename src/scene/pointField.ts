@@ -7,10 +7,16 @@ import {
   Points,
   Scene,
   ShaderMaterial,
+  Vector2,
   WebGLRenderer,
 } from 'three';
-import { sceneProgress } from '@/lib/sceneProgress';
-import { buildTargets } from '@/scene/targets';
+import {
+  SCENE_REGIONS,
+  SCENE_STOPS,
+  sceneProgress,
+  sceneThemes,
+} from '@/lib/sceneProgress';
+import { buildTrail, regionAnchor, type TrailLayout } from '@/scene/targets';
 import { pointFragmentShader, pointVertexShader } from '@/scene/shaders';
 
 function tokenColor(name: string) {
@@ -30,17 +36,16 @@ export type PointFieldHandle = {
   dispose: () => void;
 };
 
-function buildGeometry(count: number, wide: boolean) {
-  const { positions, thread, seeds } = buildTargets(count, wide);
+const CAMERA_Z = 6;
+const MAX_SMEAR = 0.45;
+
+function buildGeometry(count: number, layout: TrailLayout) {
+  const { positions, spines, info, reach } = buildTrail(count, layout);
   const geometry = new BufferGeometry();
-  geometry.setAttribute('position', new BufferAttribute(positions[0], 3));
-  for (let i = 1; i < positions.length; i += 1) {
-    geometry.setAttribute(`aT${i}`, new BufferAttribute(positions[i], 3));
-  }
-  geometry.setAttribute('aThread', new BufferAttribute(thread, 3));
-  geometry.setAttribute('aSeed', new BufferAttribute(seeds, 1));
-  geometry.computeBoundingSphere();
-  return geometry;
+  geometry.setAttribute('position', new BufferAttribute(positions, 3));
+  geometry.setAttribute('aSpine', new BufferAttribute(spines, 3));
+  geometry.setAttribute('aInfo', new BufferAttribute(info, 4));
+  return { geometry, reach };
 }
 
 export function createPointField({
@@ -62,14 +67,12 @@ export function createPointField({
   container.appendChild(renderer.domElement);
 
   const scene = new Scene();
-  const camera = new PerspectiveCamera(40, 1, 0.1, 30);
-  camera.position.set(0, 0, 6);
-  const viewHeight = 2 * 6 * Math.tan((camera.fov * Math.PI) / 360);
+  const camera = new PerspectiveCamera(40, 1, 0.1, 40);
+  camera.position.set(0, 0, CAMERA_Z);
+  const viewHeight = 2 * CAMERA_Z * Math.tan((camera.fov * Math.PI) / 360);
 
-  const ink = tokenColor('--color-ink');
-  const paper = tokenColor('--color-paper');
-  const accent = tokenColor('--color-primary-600');
-  const ochre = tokenColor('--color-ochre');
+  const anchors = Array.from({ length: SCENE_REGIONS }, () => new Vector2());
+  const edges = new Array<number>(SCENE_STOPS).fill(-1000);
 
   const material = new ShaderMaterial({
     vertexShader: pointVertexShader,
@@ -79,24 +82,37 @@ export function createPointField({
     depthTest: false,
     blending: NormalBlending,
     uniforms: {
-      uProgress: { value: 0 },
+      uAnchors: { value: anchors },
+      uEdges: { value: edges },
+      uThemes: { value: [...sceneThemes] },
       uTime: { value: 0 },
       uSize: { value: 2.2 },
       uPixelRatio: { value: 1 },
-      uSplitY: { value: 2 },
-      uThemeAbove: { value: 1 },
-      uThemeBelow: { value: 1 },
-      uInk: { value: ink },
-      uPaper: { value: paper },
-      uAccent: { value: accent },
-      uOchre: { value: ochre },
+      uSmear: { value: 0 },
+      uCameraY: { value: 0 },
+      uViewHeight: { value: viewHeight },
+      uInk: { value: tokenColor('--color-ink') },
+      uPaper: { value: tokenColor('--color-paper') },
+      uAccent: { value: tokenColor('--color-primary-600') },
+      uOchre: { value: tokenColor('--color-ochre') },
       uOpacity: { value: 0 },
       uStrength: { value: 1 },
     },
   });
 
-  let wide = container.clientWidth >= 768;
-  let geometry = buildGeometry(count, wide);
+  const layoutFor = (width: number, height: number): TrailLayout => {
+    const wide = width >= 768;
+    return {
+      wide,
+      scale: wide ? 1 : 0.6,
+      halfWidth: (viewHeight / 2) * (width / Math.max(1, height)),
+    };
+  };
+
+  let layout = layoutFor(container.clientWidth, container.clientHeight);
+  let built = buildGeometry(count, layout);
+  let geometry = built.geometry;
+  let reach = built.reach;
   const points = new Points(geometry, material);
   points.frustumCulled = false;
   scene.add(points);
@@ -111,13 +127,18 @@ export function createPointField({
     camera.updateProjectionMatrix();
     material.uniforms.uPixelRatio.value = dpr;
 
-    const nextWide = width >= 768;
-    if (nextWide !== wide) {
-      wide = nextWide;
+    const next = layoutFor(width, height);
+    if (
+      next.wide !== layout.wide ||
+      Math.abs(next.halfWidth - layout.halfWidth) > 0.08
+    ) {
       geometry.dispose();
-      geometry = buildGeometry(count, wide);
+      built = buildGeometry(count, next);
+      geometry = built.geometry;
+      reach = built.reach;
       points.geometry = geometry;
     }
+    layout = next;
   };
 
   const observer = new ResizeObserver(resize);
@@ -125,11 +146,30 @@ export function createPointField({
   resize();
 
   let last = performance.now();
-  let smoothProgress = 0;
-  let smoothOffset = 0;
+  let lastScroll = window.scrollY;
+  let velocity = 0;
   let elapsed = 0;
   const stats = { frames: 0, slow: 0, reported: false };
   let visible = !document.hidden;
+
+  const syncLayout = (unit: number, vh: number) => {
+    const page = sceneProgress.layout;
+    if (!page) return;
+    for (let k = 0; k < SCENE_REGIONS; k += 1) {
+      const anchor = regionAnchor(k, layout, reach);
+      const top = page.tops[k];
+      const centre =
+        k === SCENE_STOPS
+          ? top + page.heights[k] * 0.9
+          : layout.wide
+            ? top + Math.min(page.heights[k], vh * 1.5) / 2
+            : top + vh * 0.19;
+      anchors[k].set(anchor.x, -centre * unit + anchor.y);
+    }
+    for (let i = 0; i < SCENE_STOPS; i += 1) {
+      edges[i] = -page.tops[i + 1] * unit;
+    }
+  };
 
   const tick = (now: number) => {
     const delta = Math.min(0.05, (now - last) / 1000);
@@ -137,27 +177,29 @@ export function createPointField({
     if (!visible) return;
     elapsed += delta;
 
-    smoothProgress +=
-      (sceneProgress.value - smoothProgress) * Math.min(1, delta * 6);
-    smoothOffset +=
-      (sceneProgress.offset - smoothOffset) * Math.min(1, delta * 8);
-    camera.position.y = -smoothOffset * viewHeight;
+    const vh = sceneProgress.layout?.vh ?? window.innerHeight;
+    const unit = viewHeight / Math.max(1, vh);
+    const scrollY = window.scrollY;
+    const instant = delta > 0 ? (scrollY - lastScroll) / delta : 0;
+    lastScroll = scrollY;
+    velocity += (instant - velocity) * Math.min(1, delta * 5);
+
+    syncLayout(unit, vh);
+
+    camera.position.x = sceneProgress.pointerX * 0.12;
+    camera.position.y =
+      -(scrollY + vh / 2) * unit - sceneProgress.pointerY * 0.06;
 
     const u = material.uniforms;
-    u.uProgress.value = smoothProgress;
     u.uTime.value = elapsed;
+    u.uCameraY.value = camera.position.y;
+    u.uViewHeight.value = viewHeight;
     u.uOpacity.value = Math.min(1, u.uOpacity.value + delta * 0.8);
-    u.uSplitY.value = sceneProgress.splitY;
-    u.uThemeAbove.value = sceneProgress.themeAbove;
-    u.uThemeBelow.value = sceneProgress.themeBelow;
-    u.uStrength.value = wide ? 1 : 0.5;
-
-    const targetY = sceneProgress.pointerX * 0.18 + elapsed * 0.02;
-    const targetX = -sceneProgress.pointerY * 0.12;
-    points.rotation.y +=
-      (targetY - points.rotation.y) * Math.min(1, delta * 2.5);
-    points.rotation.x +=
-      (targetX - points.rotation.x) * Math.min(1, delta * 2.5);
+    u.uStrength.value = layout.wide ? 1 : 0.6;
+    u.uSmear.value = Math.max(
+      -MAX_SMEAR,
+      Math.min(MAX_SMEAR, -velocity * unit * 0.1),
+    );
 
     renderer.render(scene, camera);
 
@@ -174,6 +216,7 @@ export function createPointField({
   const onVisibility = () => {
     visible = !document.hidden;
     last = performance.now();
+    lastScroll = window.scrollY;
   };
   document.addEventListener('visibilitychange', onVisibility);
   renderer.setAnimationLoop(tick);
