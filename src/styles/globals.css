@@ -161,10 +161,10 @@
   .project-cutout {
     border-top-right-radius: 0;
     mask:
-      linear-gradient(black 0 0),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='80' viewBox='0 0 88 80'%3E%3Cpath d='M0 0H88V80A16 16 0 0 0 72 64H40A24 24 0 0 1 16 40V16A16 16 0 0 0 0 0Z'/%3E%3C/svg%3E")
-        top right / 88px 80px no-repeat;
-    mask-composite: exclude;
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='82' height='82' viewBox='-2 0 82 82'%3E%3Cpath d='M-2 0H0A16 16 0 0 1 16 16V40A24 24 0 0 0 40 64H64A16 16 0 0 1 80 80V82H-2Z'/%3E%3C/svg%3E")
+        top right / 82px 82px no-repeat,
+      linear-gradient(black 0 0) top left / calc(100% - 80px) 100% no-repeat,
+      linear-gradient(black 0 0) bottom left / 100% calc(100% - 80px) no-repeat;
   }
 
   .container-page {
