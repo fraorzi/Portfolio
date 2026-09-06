@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { Plus } from 'lucide-react';
 import { projectsCopy, type Project } from '@/content/site';
 import type { RepoSnapshot } from '@/lib/github';
 import { formatDayMonth, formatRelative } from '@/lib/time';
@@ -36,9 +37,7 @@ export function ProjectCard({ project, snapshot, onOpen }: ProjectCardProps) {
         aria-label={`${projectsCopy.open}: ${project.title}`}
         className="absolute top-2 right-2 flex h-11 w-11 items-center justify-center rounded-full border border-(--section-fg)/40 text-(--section-fg) transition-colors duration-300 hover:border-(--section-fg) hover:bg-(--section-fg) hover:text-(--section-bg)"
       >
-        <span aria-hidden className="font-display text-md leading-none">
-          i
-        </span>
+        <Plus className="h-4 w-4" strokeWidth={1.5} aria-hidden />
       </button>
 
       <div className="pr-16">

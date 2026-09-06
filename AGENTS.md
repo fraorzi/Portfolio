@@ -10,7 +10,7 @@ One-page portfolio for Franciszek Orzechowski — front-end developer with backe
 
 The site must feel **editorial-warm**: creamy paper, tinted ink, magazine-like restraint, with one persistent particle thread as the counterpoint. Premium, art-directed, non-template. Fast on mid-tier mobile.
 
-Copy: Polish. Code, identifiers, commits, file names: English.
+Copy: Polish. Code, identifiers, commits, file names: English. Headings say what the section is (`Nad czym pracuję`, `Ostatnie commity`) — no aphorisms, no two-fragment taglines, no trailing periods on headings, no leads that describe the UI itself. Numbers on the page come from GitHub or the user; nothing invented.
 
 ---
 
@@ -60,36 +60,36 @@ Neutrals dominate; primary and ochre stay small.
 - Display / headings: `font-display` (Space Grotesk Variable). Body: `font-body` (DM Sans Variable, default). Both local woff2 in `public/fonts`. No third face.
 - `font-style: normal` enforced in base layer — no italic anywhere.
 - Scale: `text-2xs` 10px → `text-2xl` 20px for body sections; `text-hero-sm/md/lg` 20–24px for the hero. **24px is the ceiling on the page.**
-- Tracking: `tracking-tight` on display; uppercase labels use `tracking-[0.16em]`–`[0.2em]`.
+- Tracking: `tracking-tight` on display. Uppercase + letterspacing (`tracking-[0.16em]`) is reserved for the navbar pills — nowhere else. Buttons, form labels, links and tool lists are sentence case at `text-xs`/`text-sm`. No chip/pill tag rows; lists of tools are plain comma-separated text.
 
 ### 3.4 Layout & spacing
 
-- `container-page` wraps content (max 1280px). Body sections use `md:grid-cols-12`, usually 4/8 or 5/7.
+- `container-page` wraps content (max 1280px). Section layouts deliberately differ: About 7/4, Projects 4/8, Scope single column table (`max-w-4xl`), Recent full-width header then 4/8, Contact 5/7.
 - Compact UI, small type, restrained spacing. Radii `rounded-xl` / `rounded-2xl`; pills `rounded-full`.
 - No decorative `//` slashes.
 
 ### 3.5 Motion rules
 
-Hero is the loud moment; everything after is one characteristic move per section, then quiet:
+Hero is the loud moment; everything after is at most one characteristic move per section, then quiet. Section `h2`s are static — `TextReveal` is hero-only:
 
 - **Hero** — `TextReveal` per character after the loader.
 - **About** — paragraph reveals word-by-word with scroll (`useScroll`, opacity 0.18 → 1); monogram draws in.
-- **Projects** — card fades/rises in; island `i` opens `ProjectModal` via shared `layoutId` (card morphs into the modal, modal is a different, denser design). Placeholder card for the next project.
-- **Scope** — rows wipe in with `clip-path`, rule line draws, tool chips.
-- **Recent** — weekly bars `scaleY` in, commits stagger in.
-- **Contact** — labels slide up, underline draws, `StatefulButton` idle → loading → success/error.
+- **Projects** — cards fade/rise in; island button (Lucide `Plus`) opens `ProjectModal` via shared `layoutId` (card morphs into the modal, modal is a different, denser design). Dashed placeholder card for the next project.
+- **Scope** — static rule table (title / body / tools). No scroll animation.
+- **Recent** — weekly bars `scaleY` in; commit list is static.
+- **Contact** — static labels and hairlines; primary underline scales in on focus; `StatefulButton` idle → loading → success/error.
 - **Footer** — static; local time ticks.
 
 Hover: colour / border / scale ≤ 1.02. `prefers-reduced-motion`: base CSS strips animation, `useReducedMotion()` disables Lenis, scene falls back to poster.
 
 ### 3.6 Scene (`src/scene/`)
 
-- `Scene.tsx` picks a tier (`quality.ts`: high 24k / mid 9k / poster) from `deviceMemory`, `hardwareConcurrency`, pointer + viewport; downgrades on slow frames (`pointField.ts` probe after 2.5 s). Poster is `ScenePoster.tsx` (SVG knot, `mix-blend-difference`, desktop only).
-- `targets.ts` builds one line-based shape per section — knot, orbit, braid, rings, helix, coil — plus a vertical `thread`. Shapes are placed beside content (right column on desktop, top band on mobile) via the `layout` object.
-- `shaders.ts`: `uProgress` is the sum of boundary crossings (0 → 5). Between integers the points collapse into the thread and re-form as the next shape (`viaThread`), so a section boundary on screen reads as a line running between sections.
-- Colour: per point, `mix(uInk, uPaper, theme)` where `theme` is chosen by the point's NDC y against `uSplitY` (the nearest section edge on screen, from `src/lib/sceneProgress.ts`). Points above the edge take the theme of the section above, below take the one below. ~8% primary, ~1% ochre.
-- `sceneProgress.offset`: how far the current section's top has scrolled past the viewport (≤ 0.55 vh); `pointField.ts` moves the camera so the shape scrolls away with its section instead of hovering over text.
-- Pointer parallax on fine pointers only. dpr ≤ 1.5 desktop, 1 mobile. Keep it calm: no bursts, no bloom, no neon.
+- `Scene.tsx` picks a tier (`quality.ts`: high 54k / mid 21k / poster) from `deviceMemory`, `hardwareConcurrency`, pointer + viewport; downgrades on slow frames (`pointField.ts` probe after 2.5 s). Poster is `ScenePoster.tsx` (SVG knot, `mix-blend-difference`, desktop only).
+- The field is one continuous trail baked in page space: `targets.ts` builds a shape per section — knot (lying, horizontal), orbit, braid, rings, helix, loop — and a thin thread from each shape's `exit` to the next shape's `entry` (the last one dies out inside the footer). Nothing morphs over time; a point's shape is decided by where it sits on the page. ~20% of points belong to threads.
+- Placement: each point stores an offset from its region anchor (`aInfo` = seed, region, span along thread, fade). `pointField.ts` derives `uAnchors[7]` from the measured section tops (`src/lib/sceneProgress.ts`, refreshed by `useSceneLayout` on resize/ResizeObserver) — desktop: section centre + `WIDE_ANCHORS` offsets measured from the right viewport edge (so shapes hug the right column and threads run in the margin); mobile: top band (0.2 vh) with the thread at the right edge. The camera follows `window.scrollY` exactly, so shapes stay locked to their sections.
+- Colour: per point, `mix(uInk, uPaper, theme)` where `theme` comes from the point's world y against `uEdges` (section tops in world units) — exact per section, never split by screen position. ~8% primary, ~1% ochre.
+- Motion: `drift()` wobble, `uSmear` (smoothed scroll velocity, ≤ 0.45 world units) drags points behind the camera by seed so the line smears into a trail while scrolling, pointer parallax via a small camera offset on fine pointers only. No continuous rotation — it drifted shapes off their sections. dpr ≤ 1.5 desktop, 1 mobile. Keep it calm: no bursts, no bloom, no neon.
+- Legibility is handled by composition (shapes sit in empty bands, threads in gutters), not by text halos or masks.
 
 ### 3.7 Shell
 

@@ -3,8 +3,6 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { projects, projectsCopy, sections } from '@/content/site';
 import { useRepoState } from '@/lib/repoStore';
 import { SectionShell } from '@/components/layout/SectionShell';
-import { Monogram } from '@/components/marks/Monogram';
-import { TextReveal } from '@/components/ui/TextReveal';
 import { ProjectCard } from '@/sections/Projects/ProjectCard';
 import { ProjectModal } from '@/sections/Projects/ProjectModal';
 
@@ -18,25 +16,17 @@ export function Projects() {
   const open = projects.find((p) => p.slug === openSlug) ?? null;
   const close = useCallback(() => setOpenSlug(null), []);
 
-  const enter = (fromLeft: boolean) =>
-    reduce
-      ? { opacity: 0 }
-      : { opacity: 0, x: fromLeft ? -36 : 36, rotate: fromLeft ? -1.5 : 1.5 };
+  const enter = reduce ? { opacity: 0 } : { opacity: 0, y: 14 };
+  const shown = reduce ? { opacity: 1 } : { opacity: 1, y: 0 };
 
   return (
     <SectionShell meta={meta}>
       <div className="grid gap-12 md:grid-cols-12">
         <div className="md:col-span-4">
-          <TextReveal
-            as="h2"
-            text={projectsCopy.title}
-            split="word"
-            whileInView
-            blur={4}
-            yOffset="30%"
-            className="text-2xl leading-tight tracking-tight"
-          />
-          <p className="text-muted-foreground mt-5 max-w-[32ch] text-sm">
+          <h2 className="font-display text-2xl leading-tight tracking-tight">
+            {projectsCopy.title}
+          </h2>
+          <p className="text-muted-foreground mt-5 max-w-[34ch] text-sm leading-relaxed">
             {projectsCopy.lead}
           </p>
         </div>
@@ -45,10 +35,10 @@ export function Projects() {
           {projects.map((project, i) => (
             <motion.li
               key={project.slug}
-              initial={enter(i % 2 === 0)}
-              whileInView={{ opacity: 1, x: 0, rotate: 0 }}
+              initial={enter}
+              whileInView={shown}
               viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 1, ease: EASE }}
+              transition={{ duration: 0.8, delay: i * 0.08, ease: EASE }}
             >
               <ProjectCard
                 project={project}
@@ -59,19 +49,19 @@ export function Projects() {
           ))}
 
           <motion.li
-            initial={enter(projects.length % 2 !== 0)}
-            whileInView={{ opacity: 1, x: 0, rotate: 0 }}
+            initial={enter}
+            whileInView={shown}
             viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 1, delay: 0.1, ease: EASE }}
+            transition={{
+              duration: 0.8,
+              delay: projects.length * 0.08,
+              ease: EASE,
+            }}
           >
             <article
               aria-labelledby="upcoming-title"
-              className="border-border text-foreground flex min-h-[19rem] flex-col justify-between rounded-2xl border border-dashed p-6 md:p-7"
+              className="border-border text-foreground flex min-h-[19rem] flex-col justify-end rounded-2xl border border-dashed p-6 md:p-7"
             >
-              <Monogram
-                className="text-muted-foreground h-8 w-8"
-                strokeWidth={1.25}
-              />
               <div>
                 <h3
                   id="upcoming-title"

@@ -48,7 +48,9 @@ export function Footer() {
 
         <p className="text-muted-foreground tabular-nums">
           {contact.city}, {footer.localTime}{' '}
-          <span className="text-foreground">{time ?? '--:--'}</span>
+          <span className="text-foreground inline-block min-w-[5ch]">
+            {time}
+          </span>
         </p>
       </div>
     </footer>

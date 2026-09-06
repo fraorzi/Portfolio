@@ -3,7 +3,6 @@ import { useMotionValueEvent, useReducedMotion, useScroll } from 'motion/react';
 import { about, sections } from '@/content/site';
 import { SectionShell } from '@/components/layout/SectionShell';
 import { Monogram } from '@/components/marks/Monogram';
-import { TextReveal } from '@/components/ui/TextReveal';
 
 const meta = sections[1];
 const words = about.body.split(' ');
@@ -36,16 +35,9 @@ export function About() {
     <SectionShell meta={meta}>
       <div className="grid gap-12 md:grid-cols-12 md:gap-8">
         <div className="md:col-span-7">
-          <TextReveal
-            as="h2"
-            text={about.title}
-            split="word"
-            stagger={0.04}
-            blur={4}
-            yOffset="30%"
-            whileInView
-            className="text-2xl leading-tight tracking-tight"
-          />
+          <h2 className="font-display max-w-[34ch] text-2xl leading-tight tracking-tight">
+            {about.title}
+          </h2>
           <p
             ref={bodyRef}
             className="text-foreground text-md mt-8 max-w-[60ch] leading-relaxed"

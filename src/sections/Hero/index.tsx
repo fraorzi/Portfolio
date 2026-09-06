@@ -11,7 +11,7 @@ type HeroProps = {
 };
 
 const titleClass =
-  'font-display text-hero-lg max-w-[22ch] leading-[1.12] font-medium tracking-[-0.02em]';
+  'font-display text-hero-lg max-w-[30ch] leading-[1.12] font-medium tracking-[-0.02em]';
 
 export function Hero({ ready }: HeroProps) {
   return (
@@ -61,7 +61,7 @@ export function Hero({ ready }: HeroProps) {
                 event.preventDefault();
                 scrollToId('projects');
               }}
-              className="bg-primary-600 text-paper text-2xs hover:bg-primary-500 rounded-full px-5 py-2.5 tracking-[0.16em] uppercase transition-colors duration-300"
+              className="bg-primary-600 text-paper hover:bg-primary-500 rounded-full px-4 py-2 text-sm transition-colors duration-300"
             >
               {hero.primaryCta}
             </a>
@@ -71,7 +71,7 @@ export function Hero({ ready }: HeroProps) {
                 event.preventDefault();
                 scrollToId('contact');
               }}
-              className="border-border text-foreground text-2xs hover:border-foreground/50 rounded-full border px-5 py-2.5 tracking-[0.16em] uppercase transition-colors duration-300"
+              className="border-border text-foreground hover:border-foreground/50 rounded-full border px-4 py-2 text-sm transition-colors duration-300"
             >
               {hero.secondaryCta}
             </a>

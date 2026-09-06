@@ -6,7 +6,6 @@ import { useRepoState } from '@/lib/repoStore';
 import { formatDayMonth, formatRelative } from '@/lib/time';
 import { useMounted } from '@/hooks/useMounted';
 import { SectionShell } from '@/components/layout/SectionShell';
-import { TextReveal } from '@/components/ui/TextReveal';
 
 const meta = sections[4];
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -22,56 +21,45 @@ export function Recent() {
 
   return (
     <SectionShell meta={meta}>
-      <div className="grid gap-12 md:grid-cols-12">
-        <div className="md:col-span-4">
-          <TextReveal
-            as="h2"
-            text={recentCopy.title}
-            split="word"
-            whileInView
-            blur={4}
-            yOffset="30%"
-            className="text-2xl leading-tight tracking-tight"
-          />
-          <p className="text-muted-foreground mt-5 max-w-[32ch] text-sm">
-            {recentCopy.lead}
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 className="font-display text-2xl leading-tight tracking-tight">
+            {recentCopy.title}
+          </h2>
+          <p className="text-muted-foreground mt-3 text-sm">
+            {failed ? recentCopy.empty : recentCopy.lead}
           </p>
-          {failed ? (
-            <p className="text-muted-foreground mt-3 max-w-[32ch] text-xs">
-              {recentCopy.empty}
-            </p>
-          ) : null}
         </div>
+        {snapshot ? (
+          <a
+            href={snapshot.url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
+          >
+            {snapshot.fullName}
+            <ArrowUpRight className="h-3 w-3" aria-hidden />
+          </a>
+        ) : null}
+      </div>
+
+      <div className="mt-12 grid gap-10 md:grid-cols-12 md:gap-8">
+        <p className="text-xs md:col-span-4">
+          <span className="font-display block text-2xl tracking-tight tabular-nums">
+            {total}
+          </span>
+          <span className="text-muted-foreground mt-1 block max-w-[18ch]">
+            {recentCopy.commits(WEEKS)}
+          </span>
+        </p>
 
         <div className="md:col-span-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
-            <p className="text-xs">
-              <span className="font-display text-2xl tracking-tight tabular-nums">
-                {total}
-              </span>
-              <span className="text-muted-foreground ml-2">
-                {recentCopy.commits(WEEKS)}
-              </span>
-            </p>
-            {snapshot ? (
-              <a
-                href={snapshot.url}
-                target="_blank"
-                rel="noreferrer"
-                className="text-2xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 tracking-[0.16em] uppercase transition-colors"
-              >
-                {snapshot.fullName}
-                <ArrowUpRight className="h-3 w-3" aria-hidden />
-              </a>
-            ) : null}
-          </div>
-
           <motion.ol
             aria-label={recentCopy.activityLabel}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.5 }}
-            className="mt-6 grid h-28 grid-cols-12 items-end gap-1.5 md:gap-2.5"
+            className="grid h-24 grid-cols-12 items-end gap-1.5 md:gap-2.5"
           >
             {weekly.map((count, i) => (
               <li
@@ -97,13 +85,9 @@ export function Recent() {
           </motion.ol>
 
           <ol className="border-border mt-10 border-t">
-            {(snapshot?.commits ?? []).map((commit, i) => (
-              <motion.li
+            {(snapshot?.commits ?? []).map((commit) => (
+              <li
                 key={commit.sha}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.6 }}
-                transition={{ duration: 0.7, delay: i * 0.05, ease: EASE }}
                 className="border-border grid grid-cols-[5.5rem_1fr] gap-4 border-b py-4 text-sm md:grid-cols-[7rem_1fr_5rem]"
               >
                 <time
@@ -122,10 +106,10 @@ export function Recent() {
                 >
                   {commit.message}
                 </a>
-                <span className="text-muted-foreground font-display hidden text-right text-xs tracking-wide md:block">
+                <span className="text-muted-foreground hidden text-right text-xs tabular-nums md:block">
                   {commit.sha}
                 </span>
-              </motion.li>
+              </li>
             ))}
           </ol>
         </div>
