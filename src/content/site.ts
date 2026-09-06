@@ -31,7 +31,8 @@ export const navItems = sections.filter((s) => s.id !== 'hero');
 export const navCopy = {
   label: 'Nawigacja',
   menu: 'Menu',
-  open: ', otwórz nawigację',
+  open: 'Otwórz nawigację',
+  close: 'Zamknij nawigację',
   home: 'Do początku strony',
 };
 
