@@ -4,14 +4,18 @@ export type TrailGeometry = {
   positions: Float32Array;
   spines: Float32Array;
   info: Float32Array;
-  reach: readonly number[];
+  anchorBounds: readonly AnchorBounds[];
 };
 
 export type TrailLayout = {
   wide: boolean;
   scale: number;
   halfWidth: number;
+  contentHalfWidth: number;
+  cameraZ: number;
 };
+
+type AnchorBounds = { min: number; max: number };
 
 type Vec3 = readonly [number, number, number];
 type Random = () => number;
@@ -20,7 +24,6 @@ type ShapeInfo = {
   entry: Vec3;
   exit: Vec3;
   axis: readonly [Vec3, Vec3];
-  reach: number;
 };
 type ShapeBuilder = (
   out: Float32Array,
@@ -114,7 +117,6 @@ const knot: ShapeBuilder = (out, start, count, random, { scale }) => {
       [-reach, exit[1], exit[2]],
       [reach, exit[1], exit[2]],
     ],
-    reach,
   };
 };
 
@@ -136,7 +138,6 @@ const orbit: ShapeBuilder = (out, start, count, random, { scale }) => {
     entry: end,
     exit: end,
     axis: [[-ex, -ey, depth], end],
-    reach: radius + 0.1,
   };
 };
 
@@ -169,7 +170,6 @@ const braid: ShapeBuilder = (
       [-half, 0, depth],
       [half, 0, depth],
     ],
-    reach: half + 0.1,
   };
 };
 
@@ -198,7 +198,6 @@ const rings: ShapeBuilder = (out, start, count, random, { scale }) => {
       [0, top, 0],
       [0, -top, 0],
     ],
-    reach: radius + 0.1,
   };
 };
 
@@ -232,7 +231,6 @@ const helix: ShapeBuilder = (
       [-half, 0, depth],
       [half, 0, depth],
     ],
-    reach: half + 0.1,
   };
 };
 
@@ -258,7 +256,6 @@ const loop: ShapeBuilder = (out, start, count, random, { scale }) => {
       [-a, 0, depth],
       [a, 0, depth],
     ],
-    reach: a + 0.1,
   };
 };
 
@@ -273,34 +270,39 @@ const shapes: readonly ShapeBuilder[] = [
 
 const WIDE_ANCHORS: readonly { fromRight: number; y: number }[] = [
   { fromRight: 2.0, y: 0.45 },
-  { fromRight: 1.3, y: 0.3 },
+  { fromRight: 1.3, y: 1.4 },
   { fromRight: 2.5, y: 1.4 },
-  { fromRight: 0.85, y: 0 },
+  { fromRight: 0.5, y: 0 },
   { fromRight: 2.4, y: -1.75 },
-  { fromRight: 2.1, y: 1.35 },
+  { fromRight: 2.1, y: 1.65 },
   { fromRight: 0.4, y: 0 },
 ];
 
-const NARROW_EDGE = 1.0;
 const NARROW_HERO_DROP = -0.45;
-const LEFT_MARGIN = 0.25;
+const MOTION_MARGIN = 0.25;
 
 export function regionAnchor(
   region: number,
   layout: TrailLayout,
-  reach: readonly number[],
+  anchorBounds: readonly AnchorBounds[],
 ) {
   const footer = region === SCENE_STOPS;
   if (!layout.wide) {
     return {
-      x: footer ? layout.halfWidth * NARROW_EDGE : 0,
+      x: footer ? layout.halfWidth - MOTION_MARGIN : 0,
       y: region === 0 ? NARROW_HERO_DROP : 0,
     };
   }
   const anchor = WIDE_ANCHORS[region];
-  const leftmost = -layout.halfWidth + LEFT_MARGIN + (reach[region] ?? 0);
+  const bounds = anchorBounds[region];
   return {
-    x: Math.max(leftmost, layout.halfWidth - anchor.fromRight),
+    x: Math.max(
+      bounds.min,
+      Math.min(
+        bounds.max,
+        layout.contentHalfWidth - anchor.fromRight * layout.scale,
+      ),
+    ),
     y: anchor.y,
   };
 }
@@ -312,6 +314,8 @@ type ThreadSpec = {
   from: Vec3;
   to: Vec3;
   via: number | null;
+  anchorFrom: number;
+  anchorTo: number;
 };
 
 function writeThread(
@@ -322,7 +326,7 @@ function writeThread(
   random: Random,
   layout: TrailLayout,
 ) {
-  const { start, count, region, from, to, via } = spec;
+  const { start, count, region, from, to, via, anchorFrom, anchorTo } = spec;
   const last = region === SCENE_STOPS - 1;
   const sway = 0.16 * layout.scale;
   for (let i = 0; i < count; i += 1) {
@@ -335,7 +339,8 @@ function writeThread(
     x +=
       via === null
         ? Math.sin(t * 4.2 + region) * sway * bell
-        : (via - x) * Math.sqrt(bell);
+        : (via - (anchorFrom + (anchorTo - anchorFrom) * t) - x) *
+          Math.sqrt(bell);
     const y = from[1] + (to[1] - from[1]) * t;
     const z = from[2] + (to[2] - from[2]) * s;
     put(positions, start + i, x + dx, y, z + dz);
@@ -362,15 +367,17 @@ export function buildTrail(count: number, layout: TrailLayout): TrailGeometry {
   const threadCount = Math.floor((count * THREAD_SHARE) / SCENE_STOPS);
   const shapeTotal = count - threadCount * SCENE_STOPS;
   const shapeCount = Math.floor(shapeTotal / SCENE_STOPS);
-  const via = layout.wide ? null : layout.halfWidth * NARROW_EDGE;
+  const via = layout.wide ? null : layout.halfWidth - MOTION_MARGIN;
 
   const infos: ShapeInfo[] = [];
+  const anchorBounds: AnchorBounds[] = [];
   let cursor = 0;
   shapes.forEach((build, region) => {
     const random = createRandom(1000 + region * 7919);
     const n = region === SCENE_STOPS - 1 ? shapeTotal - cursor : shapeCount;
     const shape = build(positions, cursor, n, random, layout);
     infos.push(shape);
+    const bounds = { min: -Infinity, max: Infinity };
     for (let i = 0; i < n; i += 1) {
       const p = cursor + i;
       const spine = projectOnSegment(
@@ -379,13 +386,27 @@ export function buildTrail(count: number, layout: TrailLayout): TrailGeometry {
         shape.axis[1],
       );
       put(spines, p, spine[0], spine[1], spine[2]);
+      for (const [x, z] of [
+        [positions[p * 3], positions[p * 3 + 2]],
+        [spine[0], spine[2]],
+      ]) {
+        const halfWidth = layout.halfWidth * (1 - z / layout.cameraZ);
+        bounds.min = Math.max(bounds.min, -halfWidth - x + MOTION_MARGIN);
+        bounds.max = Math.min(bounds.max, halfWidth - x - MOTION_MARGIN);
+      }
       const j = p * 4;
       info[j] = random();
       info[j + 1] = region;
       info[j + 2] = 0;
       info[j + 3] = 1;
     }
+    anchorBounds.push(bounds);
     cursor += n;
+  });
+
+  anchorBounds.push({
+    min: -layout.halfWidth + MOTION_MARGIN,
+    max: layout.halfWidth - MOTION_MARGIN,
   });
 
   for (let region = 0; region < SCENE_STOPS; region += 1) {
@@ -401,6 +422,8 @@ export function buildTrail(count: number, layout: TrailLayout): TrailGeometry {
         from: infos[region].exit,
         to: next ? next.entry : [0, 0, 0],
         via,
+        anchorFrom: regionAnchor(region, layout, anchorBounds).x,
+        anchorTo: regionAnchor(region + 1, layout, anchorBounds).x,
       },
       createRandom(500 + region * 131),
       layout,
@@ -412,6 +435,6 @@ export function buildTrail(count: number, layout: TrailLayout): TrailGeometry {
     positions,
     spines,
     info,
-    reach: [...infos.map((shape) => shape.reach), 0],
+    anchorBounds,
   };
 }

@@ -40,12 +40,12 @@ const CAMERA_Z = 6;
 const MAX_SMEAR = 0.45;
 
 function buildGeometry(count: number, layout: TrailLayout) {
-  const { positions, spines, info, reach } = buildTrail(count, layout);
+  const { positions, spines, info, anchorBounds } = buildTrail(count, layout);
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(positions, 3));
   geometry.setAttribute('aSpine', new BufferAttribute(spines, 3));
   geometry.setAttribute('aInfo', new BufferAttribute(info, 4));
-  return { geometry, reach };
+  return { geometry, anchorBounds };
 }
 
 export function createPointField({
@@ -102,17 +102,23 @@ export function createPointField({
 
   const layoutFor = (width: number, height: number): TrailLayout => {
     const wide = width >= 768;
+    const halfWidth = (viewHeight / 2) * (width / Math.max(1, height));
     return {
       wide,
-      scale: wide ? 1 : 0.6,
-      halfWidth: (viewHeight / 2) * (width / Math.max(1, height)),
+      scale: Math.min(wide ? 1 : 0.6, halfWidth / 2),
+      halfWidth,
+      contentHalfWidth:
+        ((document.querySelector('.container-page')?.clientWidth ?? width) /
+          width) *
+        halfWidth,
+      cameraZ: CAMERA_Z,
     };
   };
 
   let layout = layoutFor(container.clientWidth, container.clientHeight);
   let built = buildGeometry(count, layout);
   let geometry = built.geometry;
-  let reach = built.reach;
+  let anchorBounds = built.anchorBounds;
   const points = new Points(geometry, material);
   points.frustumCulled = false;
   scene.add(points);
@@ -130,12 +136,13 @@ export function createPointField({
     const next = layoutFor(width, height);
     if (
       next.wide !== layout.wide ||
-      Math.abs(next.halfWidth - layout.halfWidth) > 0.08
+      next.halfWidth !== layout.halfWidth ||
+      next.contentHalfWidth !== layout.contentHalfWidth
     ) {
       geometry.dispose();
       built = buildGeometry(count, next);
       geometry = built.geometry;
-      reach = built.reach;
+      anchorBounds = built.anchorBounds;
       points.geometry = geometry;
     }
     layout = next;
@@ -156,7 +163,7 @@ export function createPointField({
     const page = sceneProgress.layout;
     if (!page) return;
     for (let k = 0; k < SCENE_REGIONS; k += 1) {
-      const anchor = regionAnchor(k, layout, reach);
+      const anchor = regionAnchor(k, layout, anchorBounds);
       const top = page.tops[k];
       const centre =
         k === SCENE_STOPS
