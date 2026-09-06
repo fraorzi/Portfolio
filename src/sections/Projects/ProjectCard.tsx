@@ -27,7 +27,7 @@ export function ProjectCard({ project, snapshot, onOpen }: ProjectCardProps) {
         onClick={onOpen}
         aria-haspopup="dialog"
         aria-label={`${projectsCopy.open}: ${project.title}`}
-        className="absolute top-2 right-2 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-(--section-fg)/40 text-(--section-fg) transition-colors duration-300 hover:border-(--section-fg) hover:bg-(--section-fg) hover:text-(--section-bg)"
+        className="absolute top-2 right-2 z-10 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-(--section-fg)/40 text-(--section-fg) transition-colors duration-300 hover:border-(--section-fg) hover:bg-(--section-fg) hover:text-(--section-bg)"
       >
         <span aria-hidden className="font-display text-md leading-none">
           i

@@ -84,7 +84,7 @@ export function ProjectModal({
           type="button"
           onClick={onClose}
           aria-label={projectsCopy.close}
-          className="border-paper/40 text-paper hover:border-paper hover:bg-paper hover:text-ink absolute top-2 right-2 z-10 flex h-11 w-11 items-center justify-center rounded-full border transition-colors duration-300"
+          className="border-paper/40 text-paper hover:border-paper hover:bg-paper hover:text-ink absolute top-2 right-2 z-10 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border transition-colors duration-300"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>
