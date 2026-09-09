@@ -1,9 +1,4 @@
-import {
-  AnimatePresence,
-  type HTMLMotionProps,
-  motion,
-  useReducedMotion,
-} from 'motion/react';
+import { AnimatePresence, type HTMLMotionProps, motion } from 'motion/react';
 import {
   forwardRef,
   type PointerEvent,
@@ -14,6 +9,7 @@ import {
 } from 'react';
 import { EASE_OUT, SPRING_PRESS } from '@/lib/ease';
 import { useHoverCapable } from '@/hooks/useHoverCapable';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/cn';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';

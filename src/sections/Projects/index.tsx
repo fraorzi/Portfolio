@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { projects, projectsCopy, sections } from '@/content/site';
 import { useRepoState } from '@/lib/repoStore';
 import { SectionShell } from '@/components/layout/SectionShell';

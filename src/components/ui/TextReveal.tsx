@@ -1,13 +1,9 @@
 // Adapted from beui.dev/components/motion/text-animation
 
-import {
-  motion,
-  type Transition,
-  useInView,
-  useReducedMotion,
-} from 'motion/react';
+import { motion, type Transition, useInView } from 'motion/react';
 import { useMemo, useRef, type ReactNode } from 'react';
 import { EASE_OUT } from '@/lib/ease';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/cn';
 
 type SplitMode = 'word' | 'char';
