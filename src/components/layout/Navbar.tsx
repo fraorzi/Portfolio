@@ -15,6 +15,10 @@ import { useMounted } from '@/hooks/useMounted';
 import { Monogram } from '@/components/marks/Monogram';
 import { GooeyNav } from '@/components/layout/GooeyNav';
 
+const MOBILE_SIZE = 40;
+const MOBILE_WIDTH = 120;
+const MOBILE_STEP = 56;
+
 type NavbarProps = {
   visible: boolean;
 };
@@ -38,19 +42,19 @@ export function Navbar({ visible }: NavbarProps) {
     animate: {
       y: mobileOpen
         ? reducedMotion
-          ? (index + 1) * 60
+          ? (index + 1) * MOBILE_STEP
           : Array.from(
               { length: navItems.length + 1 },
-              (_, step) => Math.min(step, index + 1) * 60,
+              (_, step) => Math.min(step, index + 1) * MOBILE_STEP,
             )
         : 0,
       width: mobileOpen
         ? reducedMotion
-          ? 148
+          ? MOBILE_WIDTH
           : Array.from({ length: navItems.length + 1 }, (_, step) =>
-              step > index ? 148 : 44,
+              step > index ? MOBILE_WIDTH : MOBILE_SIZE,
             )
-        : 44,
+        : MOBILE_SIZE,
     },
     transition: {
       ...transition,
@@ -138,7 +142,7 @@ export function Navbar({ visible }: NavbarProps) {
             event.preventDefault();
             go('hero');
           }}
-          className="bg-background text-foreground hover:bg-card pointer-events-auto flex h-11 shrink-0 items-center gap-3 rounded-full px-3 transition-colors lg:pr-5"
+          className="bg-background text-foreground hover:bg-card pointer-events-auto flex h-10 shrink-0 items-center gap-3 rounded-full px-3 transition-colors lg:pr-5"
         >
           <Monogram className="h-5 w-5" />
           <span className="font-display text-2xs hidden tracking-[0.16em] whitespace-nowrap uppercase lg:inline">
@@ -160,7 +164,7 @@ export function Navbar({ visible }: NavbarProps) {
             <GooeyNav items={navItems} active={active} onNavigate={go} />
           </div>
 
-          <div className="relative size-11 lg:hidden">
+          <div className="relative size-10 lg:hidden">
             <button
               ref={toggleRef}
               type="button"
@@ -168,7 +172,7 @@ export function Navbar({ visible }: NavbarProps) {
               aria-expanded={mobileOpen}
               aria-controls="mobile-navigation"
               onClick={() => setOpen(!mobileOpen)}
-              className="text-foreground hover:text-primary active:text-primary relative z-10 flex size-11 items-center justify-center rounded-full transition-colors"
+              className="text-foreground hover:text-primary active:text-primary relative z-10 flex size-10 items-center justify-center rounded-full transition-colors"
             >
               <span aria-hidden className="relative h-4 w-[18px]">
                 <motion.span
@@ -193,9 +197,13 @@ export function Navbar({ visible }: NavbarProps) {
             </button>
             <div
               aria-hidden
-              className="pointer-events-none absolute top-0 right-0 h-[344px] w-[148px] [filter:url(#nav-goo)]"
+              style={{
+                height: MOBILE_SIZE + MOBILE_STEP * navItems.length,
+                width: MOBILE_WIDTH,
+              }}
+              className="pointer-events-none absolute top-0 right-0 [filter:url(#nav-goo)]"
             >
-              <div className="bg-background absolute top-0 right-0 size-11 rounded-full" />
+              <div className="bg-background absolute top-0 right-0 size-10 rounded-full" />
               {mobileItems.map(
                 ({ item, index, animate, transition: itemTransition }) => (
                   <motion.div
@@ -203,7 +211,7 @@ export function Navbar({ visible }: NavbarProps) {
                     initial={false}
                     animate={animate}
                     transition={itemTransition}
-                    className="bg-background absolute top-0 right-0 h-11 rounded-full"
+                    className="bg-background absolute top-0 right-0 h-10 rounded-full"
                   >
                     <motion.div
                       initial={false}
@@ -212,10 +220,7 @@ export function Navbar({ visible }: NavbarProps) {
                         duration: reducedMotion ? 0 : 0.16,
                         delay: mobileOpen && !reducedMotion ? index * 0.16 : 0,
                       }}
-                      className={cn(
-                        'bg-background absolute -top-[18px] h-5 w-3 origin-bottom rounded-full',
-                        index === 0 ? 'right-4' : 'right-[68px]',
-                      )}
+                      className="bg-background absolute -top-[18px] right-3.5 h-5 w-3 origin-bottom rounded-full"
                     />
                   </motion.div>
                 ),
@@ -225,7 +230,8 @@ export function Navbar({ visible }: NavbarProps) {
               id="mobile-navigation"
               inert={!mobileOpen}
               aria-hidden={!mobileOpen}
-              className="pointer-events-none absolute top-0 right-0 w-[148px]"
+              style={{ width: MOBILE_WIDTH }}
+              className="pointer-events-none absolute top-0 right-0"
             >
               {mobileItems.map(
                 ({ item, index, animate, transition: itemTransition }) => (
@@ -234,7 +240,7 @@ export function Navbar({ visible }: NavbarProps) {
                     initial={false}
                     animate={animate}
                     transition={itemTransition}
-                    className="absolute top-0 right-0 h-11"
+                    className="absolute top-0 right-0 h-10"
                   >
                     <motion.a
                       href={`#${item.id}`}
@@ -253,11 +259,11 @@ export function Navbar({ visible }: NavbarProps) {
                             : 0,
                       }}
                       className={cn(
-                        'hover:text-foreground focus-visible:text-foreground flex h-11 items-center justify-center gap-2 rounded-full text-xs tracking-[0.16em] whitespace-nowrap uppercase transition-colors',
+                        'hover:text-foreground focus-visible:text-foreground flex h-10 items-center justify-center gap-2 rounded-full text-xs tracking-[0.16em] whitespace-nowrap uppercase transition-colors',
                         mobileOpen && 'pointer-events-auto',
                         item.id === active
                           ? 'text-foreground'
-                          : 'text-muted-foreground',
+                          : 'text-muted-foreground in-data-[theme=dark]:text-foreground',
                       )}
                     >
                       <span

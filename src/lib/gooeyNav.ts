@@ -34,7 +34,7 @@ export function getGooeyNavPath({
       })
       .join(' ');
   }
-  const waist = thickness / 2 - 4;
+  const waist = thickness / 2 - 6;
   const tangent = radius / Math.SQRT2;
   const shoulder = radius - tangent;
   const end = last.offset + last.size;

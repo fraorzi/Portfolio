@@ -33,7 +33,7 @@ export function GooeyNav({
   let offset = 0;
   const segments: NavSegment[] = [];
   for (const [index, item] of items.entries()) {
-    const size = vertical ? 44 : item.id === 'hero' ? 232 : 88;
+    const size = vertical ? 44 : item.id === 'hero' ? 232 : 80;
     segments.push({ offset, size });
     offset += size;
     if (index < items.length - 1) {
@@ -52,7 +52,7 @@ export function GooeyNav({
         if (!event.currentTarget.contains(event.relatedTarget))
           setFocused(null);
       }}
-      className={cn('relative', vertical ? 'w-48' : 'h-11')}
+      className={cn('relative', vertical ? 'w-48' : 'h-10')}
     >
       <svg
         aria-hidden
@@ -63,7 +63,7 @@ export function GooeyNav({
           animate={{
             d: getGooeyNavPath({
               segments,
-              thickness: vertical ? 192 : 44,
+              thickness: vertical ? 192 : 40,
               vertical,
             }),
           }}
@@ -83,7 +83,7 @@ export function GooeyNav({
             }
             transition={transition}
             style={vertical ? { width: 192 } : { width: segments[index].size }}
-            className="absolute top-0 left-0 h-11"
+            className="absolute top-0 left-0 h-10"
           >
             <motion.a
               href={`#${item.id}`}
@@ -99,7 +99,7 @@ export function GooeyNav({
                 'font-display text-2xs hover:text-primary-600 focus-visible:text-primary-600 active:text-primary-700 relative flex h-full w-full items-center justify-center gap-2.5 rounded-full tracking-[0.16em] whitespace-nowrap uppercase transition-colors duration-200',
                 active === item.id
                   ? 'text-foreground'
-                  : 'text-muted-foreground',
+                  : 'text-muted-foreground in-data-[theme=dark]:text-foreground',
               )}
             >
               {item.id === 'hero' ? (

@@ -89,3 +89,18 @@ Krótkie podsumowanie po każdej zamkniętej partii. Format: `YYYY-MM-DD — co 
 
 - 2026-05-07 — Reconstructed plan into living todo.md
 - 2026-05-07 — GSAP ScrollTrigger reveals: `lib/gsap.ts`, Lenis↔ScrollTrigger sync via gsap ticker, `useScrollReveal` hook, applied `data-reveal` to About/Services/Projects/Skills/Process/Contact
+
+---
+
+## Gooey navbar — korekty (2026-09-16, `feat/gooey-navbar`)
+
+- [x] Mobile: łączniki między elementami w jednej linii pod łącznikiem hamburgera (`right-3.5`)
+- [x] Mobile: elementy 148×44 → 120×40, krok 60 → 56, hamburger i logo 40 px
+- [x] Desktop: logo i pille 44 → 40 px wysokości
+- [x] Desktop: pille 88 → 80 px szerokości
+- [x] Desktop: szyjka między pillami 8 → 12 px (`waist = thickness/2 - 6`)
+- [x] Czarny nav: nieaktywne labele w kolorze foreground (`in-data-[theme=dark]:text-foreground`), jasny nav bez zmian
+
+### Review
+
+Zmiany w `Navbar.tsx` (stałe `MOBILE_SIZE/WIDTH/STEP`, wysokość kontenera filtra liczona z `navItems.length`), `GooeyNav.tsx`, `lib/gooeyNav.ts`. Typecheck, eslint, prettier czyste. Zweryfikowane w przeglądarce przez pomiar DOM i zrzuty na 1024 px i 375 px.
