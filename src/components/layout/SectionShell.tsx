@@ -21,7 +21,7 @@ export function SectionShell({
       data-theme={meta.theme}
       data-scene-index={meta.index}
       className={cn(
-        'bg-background text-foreground relative flex min-h-svh w-full scroll-mt-24 flex-col justify-end [--section-bg:var(--background)] [--section-fg:var(--foreground)] md:justify-center',
+        'bg-background text-foreground relative flex min-h-svh w-full flex-col justify-end [--section-bg:var(--background)] [--section-fg:var(--foreground)] md:justify-center',
         className,
       )}
     >
