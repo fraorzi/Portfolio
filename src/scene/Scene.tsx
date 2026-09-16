@@ -53,6 +53,7 @@ export function Scene({ active }: SceneProps) {
   return (
     <div
       aria-hidden
+      data-scene-quality={tier}
       className="pointer-events-none fixed inset-0 z-10 overflow-hidden"
     >
       {tier === 'poster' ? (
@@ -61,7 +62,7 @@ export function Scene({ active }: SceneProps) {
         <Suspense fallback={null}>
           <SceneCanvas
             count={POINT_COUNT[tier]}
-            onSlowFrames={handleSlowFrames}
+            onSlowFrames={tier === 'low' ? undefined : handleSlowFrames}
           />
         </Suspense>
       )}
