@@ -1,23 +1,7 @@
-import { useEffect, useState } from 'react';
-import { contact, footer, footerTheme } from '@/content/site';
+import { contact, footerTheme } from '@/content/site';
 import { Monogram } from '@/components/marks/Monogram';
 
-const timeFormatter = new Intl.DateTimeFormat('pl-PL', {
-  hour: '2-digit',
-  minute: '2-digit',
-  timeZone: contact.timeZone,
-});
-
 export function Footer() {
-  const [time, setTime] = useState<string | null>(null);
-
-  useEffect(() => {
-    const tick = () => setTime(timeFormatter.format(new Date()));
-    tick();
-    const id = window.setInterval(tick, 30_000);
-    return () => window.clearInterval(id);
-  }, []);
-
   return (
     <footer
       data-theme={footerTheme}
@@ -46,10 +30,7 @@ export function Footer() {
           </a>
         </p>
 
-        <p className="text-muted-foreground tabular-nums">
-          {contact.city}, {footer.localTime}{' '}
-          <span className="text-foreground">{time ?? '--:--'}</span>
-        </p>
+        <p className="text-muted-foreground">{contact.city}</p>
       </div>
     </footer>
   );

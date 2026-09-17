@@ -42,7 +42,6 @@ export const contact = {
   github: 'https://github.com/fraorzi',
   githubLabel: 'github.com/fraorzi',
   city: 'Warszawa',
-  timeZone: 'Europe/Warsaw',
 };
 
 export const hero = {
@@ -147,7 +146,7 @@ export const recentCopy = {
 
 export const contactCopy = {
   title: 'Napisz do mnie',
-  lead: 'Odpowiadam w jeden, dwa dni. Dostępny do projektów front-endowych i produktowych od października 2026.',
+  lead: 'Dostępny do projektów front-endowych i produktowych od października 2026.',
   fields: { name: 'Imię', email: 'E-mail', message: 'Wiadomość' },
   submit: 'Wyślij',
   sending: 'Wysyłam',
@@ -155,8 +154,4 @@ export const contactCopy = {
   failed: 'Spróbuj ponownie',
   note: 'Formularz obsługuje Netlify. Bez ciasteczek.',
   honeypot: 'Nie wypełniaj tego pola:',
-};
-
-export const footer = {
-  localTime: 'czas lokalny',
 };
