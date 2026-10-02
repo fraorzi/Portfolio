@@ -25,7 +25,7 @@ Copy: Polish. Code, identifiers, commits, file names: English.
 - **UI primitives:** beUI (beui.dev) copied into `src/components/ui/` — `TextReveal`, `Button`, `StatefulButton`. Treat them as project code; edit freely. Cards, modal and navbar are bespoke.
 - **GitHub data:** `src/lib/github.ts` (REST, optional `GITHUB_TOKEN`), `scripts/fetch-github.ts` writes `src/data/github.json` at build time, `src/lib/repoStore.ts` (`useSyncExternalStore`) serves it and refreshes client-side after hydration. Netlify build needs `GITHUB_TOKEN` to avoid rate limits; the cached JSON is the fallback.
 - **Utilities:** `cn` from `@/lib/cn` (clsx + tailwind-merge), `lucide-react`, `src/lib/time.ts` (Polish relative dates)
-- **Hosting:** Netlify (`netlify.toml`), Netlify Forms for contact (`data-netlify="true"` + `bot-field` honeypot)
+- **Hosting:** Netlify (`netlify.toml`), Netlify Forms for contact (`data-netlify="true"` + `bot-field` honeypot). Netlify's build-time `URL` fills `%SITE_URL%` in `index.html` (canonical, OG, JSON-LD) through the `siteUrl` plugin in `vite.config.ts`; locally it falls back to `http://localhost:4173`.
 - **Perf tooling:** `react-scan` injected in dev by `vite.config.ts` (`REACT_SCAN=false` disables). `bun run doctor` / `bun run doctor:trace` run react-doctor.
 - **Analytics:** none. No cookies, no consent banner.
 - **Tooling:** ESLint flat · Prettier (+ tailwindcss plugin) · Husky · lint-staged · commitlint
@@ -85,10 +85,10 @@ Hover: colour / border / scale ≤ 1.02. `prefers-reduced-motion`: base CSS stri
 ### 3.6 Scene (`src/scene/`)
 
 - `Scene.tsx` picks a tier (`quality.ts`: high 24k / mid 9k / poster) from `deviceMemory`, `hardwareConcurrency`, pointer + viewport; downgrades on slow frames (`pointField.ts` probe after 2.5 s). Poster is `ScenePoster.tsx` (SVG knot, `mix-blend-difference`, desktop only).
-- `targets.ts` builds one line-based shape per section — knot, orbit, braid, rings, helix, coil — plus a vertical `thread`. Shapes are placed beside content (right column on desktop, top band on mobile) via the `layout` object.
+- `targets.ts` builds one line-based shape per section — knot, orbit, braid, rings, helix, coil — plus a vertical `thread`. Shapes sit in empty space beside the content via the `layout` object: on desktop the knot top-right, the orbit around the About monogram, the braid under the project cards, rings / helix / coil in the left column under the heading; on mobile everything stays in the top band above 36svh. On desktop `pointField.ts` scales the whole mesh by content width ÷ viewport height (reference 1200 / 900), so the composition stays pinned to the content grid at any aspect ratio. Rotation is pointer parallax plus a small sine sway; never an unbounded spin (it sweeps shapes across the text).
 - `shaders.ts`: `uProgress` is the sum of boundary crossings (0 → 5). Between integers the points collapse into the thread and re-form as the next shape (`viaThread`), so a section boundary on screen reads as a line running between sections.
-- Colour: per point, `mix(uInk, uPaper, theme)` where `theme` is chosen by the point's NDC y against `uSplitY` (the nearest section edge on screen, from `src/lib/sceneProgress.ts`). Points above the edge take the theme of the section above, below take the one below. ~8% primary, ~1% ochre.
-- `sceneProgress.offset`: how far the current section's top has scrolled past the viewport (≤ 0.55 vh); `pointField.ts` moves the camera so the shape scrolls away with its section instead of hovering over text.
+- Colour: per point, `mix(uInk, uPaper, theme)` where `theme` is chosen by the point's NDC y against `uSplitY` (the nearest section edge on screen, from `src/lib/sceneProgress.ts`). `readSceneFrame()` runs inside the render tick on live `scrollY`, so the split lands on the DOM edge in the same frame. Points above the edge take the theme of the section above, below take the one below. ~8% primary, ~1% ochre.
+- `sceneProgress.offset`: how far the current section's top has scrolled past the viewport (≤ 0.55 vh). The vertex shader applies it as a screen-space shift (`uShift`), so every point scrolls exactly with its section regardless of depth.
 - Pointer parallax on fine pointers only. dpr ≤ 1.5 desktop, 1 mobile. Keep it calm: no bursts, no bloom, no neon.
 
 ### 3.7 Shell

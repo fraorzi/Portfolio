@@ -2,12 +2,14 @@ import { footerTheme, sections, type SectionTheme } from '@/content/site';
 
 export const SCENE_STOPS = sections.length;
 
-export const sceneProgress = {
-  value: 0,
-  offset: 0,
-  splitY: 2,
-  themeAbove: 1,
-  themeBelow: 1,
+type Layout = { tops: number[]; footerTop: number };
+
+export const sceneProgress: {
+  layout: Layout | null;
+  pointerX: number;
+  pointerY: number;
+} = {
+  layout: null,
   pointerX: 0,
   pointerY: 0,
 };
@@ -15,8 +17,6 @@ export const sceneProgress = {
 export function themeValue(theme: SectionTheme) {
   return theme === 'dark' ? 1 : 0;
 }
-
-type Layout = { tops: number[]; footerTop: number };
 
 export function measureSections(): Layout {
   const tops: number[] = [];
@@ -46,6 +46,21 @@ export type SceneFrame = {
   themeAbove: number;
   themeBelow: number;
 };
+
+const IDLE_FRAME: SceneFrame = {
+  value: 0,
+  offset: 0,
+  splitY: 2,
+  themeAbove: 1,
+  themeBelow: 1,
+};
+
+export function readSceneFrame(): SceneFrame {
+  const { layout } = sceneProgress;
+  return layout
+    ? computeFrame(layout, window.scrollY, window.innerHeight)
+    : IDLE_FRAME;
+}
 
 export function computeFrame(
   layout: Layout,

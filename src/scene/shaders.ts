@@ -11,6 +11,7 @@ export const pointVertexShader = /* glsl */ `
   uniform float uTime;
   uniform float uSize;
   uniform float uPixelRatio;
+  uniform float uShift;
   uniform float uSplitY;
   uniform float uThemeAbove;
   uniform float uThemeBelow;
@@ -47,6 +48,7 @@ export const pointVertexShader = /* glsl */ `
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
+    gl_Position.y += uShift * gl_Position.w;
 
     float size = uSize * (0.7 + aSeed * 0.9);
     gl_PointSize = size * uPixelRatio * (4.2 / max(0.5, -mv.z));

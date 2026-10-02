@@ -14,7 +14,7 @@ export function About() {
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: bodyRef,
-    offset: ['start 80%', 'end 45%'],
+    offset: ['start 85%', 'end 60%'],
   });
 
   useMotionValueEvent(scrollYProgress, 'change', (progress) => {

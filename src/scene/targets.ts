@@ -16,7 +16,12 @@ function createRandom(seed: number) {
   };
 }
 
-type Layout = { shiftX: number; shiftY: number; scale: number };
+type Layout = {
+  wide: boolean;
+  shiftX: number;
+  shiftY: number;
+  scale: number;
+};
 type Builder = (
   count: number,
   random: () => number,
@@ -48,15 +53,16 @@ const knot: Builder = (count, random, layout) => {
 
 const orbit: Builder = (count, random, layout) => {
   const out = new Float32Array(count * 3);
-  const radius = 1.1 * layout.scale;
+  const radius = (layout.wide ? 0.62 : 1.1) * layout.scale;
   const tilt = 0.55;
   for (let i = 0; i < count; i += 1) {
     const t = random() * Math.PI * 2;
     const [dx, dy] = tube(random, 0.07 * layout.scale);
     const x = Math.cos(t) * radius;
     const z = Math.sin(t) * radius;
-    out[i * 3] = x + dx + 1.9 * layout.shiftX;
-    out[i * 3 + 1] = z * Math.sin(tilt) + dy + 0.15 + layout.shiftY;
+    out[i * 3] = x + dx + 1.4 * layout.shiftX;
+    out[i * 3 + 1] =
+      z * Math.sin(tilt) + dy + 0.15 + 0.17 * layout.shiftX + layout.shiftY;
     out[i * 3 + 2] = z * Math.cos(tilt) - 0.4;
   }
   return out;
@@ -65,7 +71,7 @@ const orbit: Builder = (count, random, layout) => {
 const braid: Builder = (count, random, layout) => {
   const out = new Float32Array(count * 3);
   const length = 8.5 * layout.scale;
-  const amplitude = 0.55 * layout.scale;
+  const amplitude = (layout.wide ? 0.4 : 0.55) * layout.scale;
   for (let i = 0; i < count; i += 1) {
     const strand = i % 2;
     const t = random();
@@ -74,7 +80,11 @@ const braid: Builder = (count, random, layout) => {
     const [dx, dy] = tube(random, 0.06 * layout.scale);
     out[i * 3] = (t - 0.5) * length + dx;
     out[i * 3 + 1] =
-      Math.sin(angle) * amplitude + dy + 0.35 * layout.scale + layout.shiftY;
+      Math.sin(angle) * amplitude +
+      dy +
+      0.35 * layout.scale -
+      2.2 * layout.shiftX +
+      layout.shiftY;
     out[i * 3 + 2] = Math.cos(angle) * amplitude * 0.6 - 1.4;
   }
   return out;
@@ -83,7 +93,8 @@ const braid: Builder = (count, random, layout) => {
 const rings: Builder = (count, random, layout) => {
   const out = new Float32Array(count * 3);
   const radius = 0.7 * layout.scale;
-  const centers = [0.9, 0, -0.9].map((y) => y * layout.scale);
+  const gap = layout.wide ? 0.9 : 0.8;
+  const centers = [gap, 0, -gap].map((y) => y * layout.scale);
   for (let i = 0; i < count; i += 1) {
     const ring = i % 3;
     const t = random() * Math.PI * 2;
@@ -105,18 +116,18 @@ const rings: Builder = (count, random, layout) => {
 
 const helix: Builder = (count, random, layout) => {
   const out = new Float32Array(count * 3);
-  const length = 7.0 * layout.scale;
-  const radius = 0.75 * layout.scale;
-  const turns = 4.5;
+  const { wide, scale } = layout;
+  const length = (wide ? 4.4 : 7.0) * scale;
+  const radius = (wide ? 0.42 : 0.75) * scale;
+  const turns = wide ? 3.5 : 4.5;
   for (let i = 0; i < count; i += 1) {
     const t = i / count;
     const angle = t * Math.PI * 2 * turns;
     const jitter = (random() - 0.5) * 0.12;
-    out[i * 3] = (t - 0.5) * length;
-    out[i * 3 + 1] =
-      Math.cos(angle) * (radius + jitter) -
-      1.4 * layout.scale * layout.shiftX +
-      layout.shiftY;
+    const along = (t - 0.5) * length;
+    const across = Math.cos(angle) * (radius + jitter);
+    out[i * 3] = wide ? across - 2.2 * layout.shiftX : along;
+    out[i * 3 + 1] = wide ? -along - 1.45 : across + layout.shiftY;
     out[i * 3 + 2] = Math.sin(angle) * (radius + jitter) - 0.6;
   }
   return out;
@@ -125,7 +136,8 @@ const helix: Builder = (count, random, layout) => {
 const coil: Builder = (count, random, layout) => {
   const out = new Float32Array(count * 3);
   const turns = 4;
-  const outer = 2.1 * layout.scale;
+  const outer = (layout.wide ? 2.1 : 1.7) * layout.scale;
+  const lift = layout.wide ? 0 : 0.2;
   for (let i = 0; i < count; i += 1) {
     const t = Math.sqrt(random());
     const angle = t * Math.PI * 2 * turns;
@@ -136,7 +148,8 @@ const coil: Builder = (count, random, layout) => {
       Math.sin(angle) * r * 0.55 +
       dy -
       1.15 * layout.scale * layout.shiftX +
-      layout.shiftY;
+      layout.shiftY +
+      lift;
     out[i * 3 + 2] = -1.6 + t * 1.8;
   }
   return out;
@@ -164,8 +177,8 @@ export function buildTargets(count: number, wide: boolean): TargetSet {
     throw new Error('scene: target builders must match section count');
   }
   const layout: Layout = wide
-    ? { shiftX: 1, shiftY: 0, scale: 1 }
-    : { shiftX: 0, shiftY: 1.2, scale: 0.6 };
+    ? { wide, shiftX: 1, shiftY: 0, scale: 1 }
+    : { wide, shiftX: 0, shiftY: 1.4, scale: 0.55 };
   const positions = builders.map((build, i) =>
     build(count, createRandom(1000 + i * 7919), layout),
   );

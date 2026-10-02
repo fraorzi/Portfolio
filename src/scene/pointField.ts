@@ -9,7 +9,7 @@ import {
   ShaderMaterial,
   WebGLRenderer,
 } from 'three';
-import { sceneProgress } from '@/lib/sceneProgress';
+import { readSceneFrame, sceneProgress } from '@/lib/sceneProgress';
 import { buildTargets } from '@/scene/targets';
 import { pointFragmentShader, pointVertexShader } from '@/scene/shaders';
 
@@ -17,6 +17,16 @@ const INK = new Color('#12110f');
 const PAPER = new Color('#f4f1ea');
 const ACCENT = new Color('#0f6e63');
 const OCHRE = new Color('#c89b3c');
+
+const CONTENT_MAX = 1280;
+const CONTENT_GUTTER = 80;
+const REFERENCE_RATIO = (CONTENT_MAX - CONTENT_GUTTER) / 900;
+
+function contentScale(width: number, height: number) {
+  const content = Math.min(width, CONTENT_MAX) - CONTENT_GUTTER;
+  const ratio = content / Math.max(1, height) / REFERENCE_RATIO;
+  return Math.min(1.2, Math.max(0.6, ratio));
+}
 
 export type PointFieldOptions = {
   container: HTMLElement;
@@ -62,7 +72,6 @@ export function createPointField({
   const scene = new Scene();
   const camera = new PerspectiveCamera(40, 1, 0.1, 30);
   camera.position.set(0, 0, 6);
-  const viewHeight = 2 * 6 * Math.tan((camera.fov * Math.PI) / 360);
 
   const material = new ShaderMaterial({
     vertexShader: pointVertexShader,
@@ -73,6 +82,7 @@ export function createPointField({
     blending: NormalBlending,
     uniforms: {
       uProgress: { value: 0 },
+      uShift: { value: 0 },
       uTime: { value: 0 },
       uSize: { value: 2.2 },
       uPixelRatio: { value: 1 },
@@ -111,6 +121,7 @@ export function createPointField({
       geometry = buildGeometry(count, wide);
       points.geometry = geometry;
     }
+    points.scale.setScalar(wide ? contentScale(width, height) : 1);
   };
 
   const observer = new ResizeObserver(resize);
@@ -119,7 +130,6 @@ export function createPointField({
 
   let last = performance.now();
   let smoothProgress = 0;
-  let smoothOffset = 0;
   let elapsed = 0;
   const stats = { frames: 0, slow: 0, reported: false };
   let visible = !document.hidden;
@@ -130,22 +140,21 @@ export function createPointField({
     if (!visible) return;
     elapsed += delta;
 
-    smoothProgress +=
-      (sceneProgress.value - smoothProgress) * Math.min(1, delta * 6);
-    smoothOffset +=
-      (sceneProgress.offset - smoothOffset) * Math.min(1, delta * 8);
-    camera.position.y = -smoothOffset * viewHeight;
+    const frame = readSceneFrame();
+    smoothProgress += (frame.value - smoothProgress) * Math.min(1, delta * 6);
 
     const u = material.uniforms;
     u.uProgress.value = smoothProgress;
+    u.uShift.value = frame.offset * 2;
     u.uTime.value = elapsed;
     u.uOpacity.value = Math.min(1, u.uOpacity.value + delta * 0.8);
-    u.uSplitY.value = sceneProgress.splitY;
-    u.uThemeAbove.value = sceneProgress.themeAbove;
-    u.uThemeBelow.value = sceneProgress.themeBelow;
+    u.uSplitY.value = frame.splitY;
+    u.uThemeAbove.value = frame.themeAbove;
+    u.uThemeBelow.value = frame.themeBelow;
     u.uStrength.value = wide ? 1 : 0.5;
 
-    const targetY = sceneProgress.pointerX * 0.18 + elapsed * 0.02;
+    const targetY =
+      sceneProgress.pointerX * 0.18 + Math.sin(elapsed * 0.15) * 0.08;
     const targetX = -sceneProgress.pointerY * 0.12;
     points.rotation.y +=
       (targetY - points.rotation.y) * Math.min(1, delta * 2.5);

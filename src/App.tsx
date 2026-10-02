@@ -4,7 +4,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { SmoothScrollProvider } from '@/lib/lenis';
 import { refreshRepos } from '@/lib/repoStore';
 import { useMounted } from '@/hooks/useMounted';
-import { useSceneScroll } from '@/hooks/useSceneScroll';
+import { useSceneLayout } from '@/hooks/useSceneLayout';
 import { Scene } from '@/scene/Scene';
 import { Hero } from '@/sections/Hero';
 import { About } from '@/sections/About';
@@ -21,7 +21,7 @@ export default function App() {
   const [introPhase, setIntroPhase] = useState<IntroPhase>('active');
   const introVisible = introPhase !== 'done';
 
-  useSceneScroll(mounted);
+  useSceneLayout(mounted);
 
   useEffect(() => {
     refreshRepos();
