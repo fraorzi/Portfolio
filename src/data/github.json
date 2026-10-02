@@ -3,66 +3,66 @@
     "fullName": "fraorzi/diffscope_swift",
     "url": "https://github.com/fraorzi/diffscope_swift",
     "createdAt": "2026-07-27T11:26:28Z",
-    "pushedAt": "2026-09-04T09:12:18Z",
+    "pushedAt": "2026-09-06T00:03:43Z",
     "stars": 0,
-    "commitCount": 226,
+    "commitCount": 239,
     "languages": [
       {
         "name": "C",
-        "share": 0.8027195502627466
+        "share": 0.799268005631572
       },
       {
         "name": "Swift",
-        "share": 0.17220133233107884
+        "share": 0.17576071249835012
       },
       {
         "name": "JavaScript",
-        "share": 0.011605382141171171
+        "share": 0.01155548115843196
       },
       {
         "name": "HTML",
-        "share": 0.00586802172395253
+        "share": 0.005842790322935457
       }
     ],
     "commits": [
       {
-        "sha": "89102bb",
-        "message": "docs: partial verification of areas A, D and E, with the measurements that survived",
-        "date": "2026-09-04T09:12:16Z",
-        "url": "https://github.com/fraorzi/diffscope_swift/commit/89102bbbd341525c4b291e1207e88e0c75cd3d22"
+        "sha": "1773f10",
+        "message": "docs: close the diff-engine audit milestone - handoff, step log and lessons",
+        "date": "2026-09-06T00:03:41Z",
+        "url": "https://github.com/fraorzi/diffscope_swift/commit/1773f105acdabf696331ff53c6755637b1790076"
       },
       {
-        "sha": "8c7d233",
-        "message": "docs: area C verified — DEC-083 removed the quietening and its revisit trigger has fired",
-        "date": "2026-09-03T19:48:51Z",
-        "url": "https://github.com/fraorzi/diffscope_swift/commit/8c7d233b8653d4066c9280e3aa3b4e6dd58de70e"
+        "sha": "8466dc6",
+        "message": "fix: the model is built from the diff the invariant is stated against, and the corpus is finally validated",
+        "date": "2026-09-05T23:25:35Z",
+        "url": "https://github.com/fraorzi/diffscope_swift/commit/8466dc665274519b2b0d4b4a77c44f72b37bd5cb"
       },
       {
-        "sha": "500e568",
-        "message": "docs: 200 candidate diff-engine defects from the divergent phase",
-        "date": "2026-09-03T13:21:48Z",
-        "url": "https://github.com/fraorzi/diffscope_swift/commit/500e568ca1c499df213ec9d494d7995776abde08"
+        "sha": "0575ab2",
+        "message": "docs: record DEC-123 and the fallback-path control in the verified summary",
+        "date": "2026-09-05T20:36:21Z",
+        "url": "https://github.com/fraorzi/diffscope_swift/commit/0575ab271933c3b648e0c3ac5ae820468dd51ac3"
       },
       {
-        "sha": "462bb62",
-        "message": "fix: the window re-measures when the basis it measured against moves",
-        "date": "2026-09-03T00:17:46Z",
-        "url": "https://github.com/fraorzi/diffscope_swift/commit/462bb62d75d70d1ef7aff832f7ff35d5ee2a3930"
+        "sha": "245e87e",
+        "message": "fix: the syntax snap finishes a construct rather than reaching into the line above",
+        "date": "2026-09-05T17:29:27Z",
+        "url": "https://github.com/fraorzi/diffscope_swift/commit/245e87e095ad47ab82e1b71c931af8acf30f0881"
       },
       {
-        "sha": "b6594fb",
-        "message": "fix: a file caught mid-write is re-read rather than waited on forever",
-        "date": "2026-09-02T09:22:25Z",
-        "url": "https://github.com/fraorzi/diffscope_swift/commit/b6594fbe5bd31b0d1618c911128903271a59cd10"
+        "sha": "2eef384",
+        "message": "docs: consolidated verification of the diff-engine audit",
+        "date": "2026-09-05T02:41:40Z",
+        "url": "https://github.com/fraorzi/diffscope_swift/commit/2eef3848e43658bcf85aca5a6931789be82b81b7"
       },
       {
-        "sha": "eb889a4",
-        "message": "perf: the repository-wide reads leave the main thread too",
-        "date": "2026-09-02T07:20:23Z",
-        "url": "https://github.com/fraorzi/diffscope_swift/commit/eb889a41598989ad24c823aa2d0b5b83f8155a77"
+        "sha": "80d9a57",
+        "message": "docs: area B verified with each widening pass isolated",
+        "date": "2026-09-05T02:40:47Z",
+        "url": "https://github.com/fraorzi/diffscope_swift/commit/80d9a576b4a6385f6e8bfa392f775163f95902ff"
       }
     ],
-    "weekly": [0, 0, 0, 0, 0, 0, 34, 8, 82, 46, 25, 31],
-    "fetchedAt": "2026-09-04T09:17:51.594Z"
+    "weekly": [0, 0, 30, 12, 71, 57, 25, 30, 14, 0, 0, 0],
+    "fetchedAt": "2026-10-01T23:13:45.573Z"
   }
 }

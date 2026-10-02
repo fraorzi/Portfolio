@@ -104,3 +104,22 @@ Krótkie podsumowanie po każdej zamkniętej partii. Format: `YYYY-MM-DD — co 
 ### Review
 
 Zmiany w `Navbar.tsx` (stałe `MOBILE_SIZE/WIDTH/STEP`, wysokość kontenera filtra liczona z `navItems.length`), `GooeyNav.tsx`, `lib/gooeyNav.ts`. Typecheck, eslint, prettier czyste. Zweryfikowane w przeglądarce przez pomiar DOM i zrzuty na 1024 px i 375 px.
+
+---
+
+## Scena, czytelność i meta (2026-10-02, `fix/scene-readability-meta`)
+
+- [x] Kolor cząsteczek na krawędzi sekcji: `uSplitY` liczone w klatce renderu z bieżącego `scrollY` (dziś canvas jest klatkę za DOM, przy szybkim scrollu Lenisa linia zostaje ~10-15% w tyle)
+- [x] About: reveal słowo po słowie kończy się wcześniej (`end 45%` → `end 60%`)
+- [x] Cząsteczki na tekście: usunąć nieograniczony obrót `elapsed * 0.02` (po kilku minutach kształty przejeżdżają nad tekst), helisa w Recent poza listą commitów; pomiar pokrycia tekstu na desktopie i mobile
+- [x] Em dashe: copy w `site.ts`, `index.html`, wiadomości commitów z GitHuba
+- [x] Meta: absolutne URL-e (Netlify `URL`), canonical, `og:url`, `og:site_name`, alt obrazka, author, apple-touch-icon, JSON-LD; nowy `og.png` zgodny z obecnym designem
+
+### Review
+
+- Kolor: `useSceneScroll` → `useSceneLayout` (tylko pomiar sekcji), `readSceneFrame()` w ticku `pointField.ts`. Test: przewinięcie w rAF i odczyt pikseli z WebGL w następnej klatce. Przed: krawędź DOM 300 px, zmiana koloru 450 px. Po: 300/300, 550/550, 200/200; w trakcie scrolla Lenisa zgodność co do 4 px.
+- Nachodzenie: obrót to parallax + `sin` (±0.08 rad); orbita wokół monogramu, oplot pod kartami, helisa pionowo w lewej kolumnie Recent; mesh skalowany szerokością treści / wysokością (0.6-1.2); offset sekcji jako przesunięcie w przestrzeni ekranu (`uShift`) zamiast ruchu kamery, bez wygładzania; mobile: pas kształtów wyżej (`shiftY 1.4`, `scale 0.55`), mniejsza spirala. Pomiar: rzut punktów kontra prostokąty tekstu (pad 6-8 px) dla 1024×768, 1280×800, 1440×700, 1440×900, 1512×945, 1920×1080, 2560×1440, 768×1024, 360×640, 375×812, 390×664, 430×932, przy każdej pozycji scrolla z ukształtowaną figurą: 0% (najgorszy przypadek z parallaxem 1.7% przy 1440×700). Realny render WebGL 1440×900: 0% pikseli cząsteczek na tekście we wszystkich sekcjach.
+- Reveal About: ostatnie słowo ma krycie 1.00 przy dole akapitu na 60% ekranu (0.72 przy 62%).
+- Em dashe: 0 w DOM, atrybutach i `<head>`; wiadomości commitów normalizowane w `github.ts` (`—` → `-`).
+- Meta: build z `URL=https://franciszek-test.netlify.app` daje absolutne canonical/OG/Twitter/JSON-LD, brak `%SITE_URL%` w `dist/index.html`. Nowe `og.png` (1200×630) i `apple-touch-icon.png` (180×180) narysowane z geometrii `targets.ts` i fontów strony.
+- Typecheck, lint (1 stare ostrzeżenie w `StatefulButton.tsx`), Prettier czyste.

@@ -128,7 +128,7 @@ export async function fetchRepoSnapshot(
     languages: languageShares(languages.data),
     commits: commits.slice(0, COMMITS_SHOWN).map((c) => ({
       sha: c.sha.slice(0, 7),
-      message: c.commit.message.split('\n')[0],
+      message: c.commit.message.split('\n')[0].replace(/\s*[—–]\s*/g, ' - '),
       date: c.commit.author?.date ?? repo.data.pushed_at,
       url: c.html_url,
     })),
