@@ -33,7 +33,7 @@ export function measureSections(): Layout {
   return { tops, footerTop };
 }
 
-const MAX_OFFSET = 0.55;
+export const MAX_OFFSET = 0.55;
 
 function clamp01(n: number, max = 1) {
   return Math.min(max, Math.max(0, n));

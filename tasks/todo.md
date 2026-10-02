@@ -123,3 +123,12 @@ Zmiany w `Navbar.tsx` (stałe `MOBILE_SIZE/WIDTH/STEP`, wysokość kontenera fil
 - Em dashe: 0 w DOM, atrybutach i `<head>`; wiadomości commitów normalizowane w `github.ts` (`—` → `-`).
 - Meta: build z `URL=https://franciszek-test.netlify.app` daje absolutne canonical/OG/Twitter/JSON-LD, brak `%SITE_URL%` w `dist/index.html`. Nowe `og.png` (1200×630) i `apple-touch-icon.png` (180×180) narysowane z geometrii `targets.ts` i fontów strony.
 - Typecheck, lint (1 stare ostrzeżenie w `StatefulButton.tsx`), Prettier czyste.
+
+## Skala sceny na dużych ekranach (2026-10-02)
+
+- [x] Linia między sekcjami zawsze od góry do dołu, oplot w Projects i helisa (mobile) od boku do boku, helisa w Recent do dolnej krawędzi
+- [x] Liczba cząsteczek rośnie z powierzchnią ekranu
+
+### Review
+
+Przyczyna: skala treści (0.6-1.2) obejmowała cały mesh, więc na dużych ekranach linia i oplot kurczyły się razem z kształtami przy treści. Teraz `buildTargets(count, viewport)` skaluje tylko kształty przy treści, a linia, oplot i koniec helisy liczą zasięg z frustum na swojej głębokości, z zapasem na przesunięcie sekcji (`MAX_OFFSET`) i największy przechył (`TILT`). Liczba punktów: baza z tieru × powierzchnia / (1512×982), 1-2.5×, jasność punktu / √gęstość. Weryfikacja: model rzutowania dla 360×640 do 3440×1440, wszystkie kombinacje przechyłu i przesunięcia, zero przerw na krawędziach, nachodzenie na tekst maks. 1.3% (1440×700). Realny shader (render offscreen, 2560×1440, 59.5k punktów): oplot x 0-2559, linia y 0-1439 także przy przesunięciu 1.1 i przechyle, helisa do 1439.

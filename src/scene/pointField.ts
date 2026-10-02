@@ -10,7 +10,13 @@ import {
   WebGLRenderer,
 } from 'three';
 import { readSceneFrame, sceneProgress } from '@/lib/sceneProgress';
-import { buildTargets } from '@/scene/targets';
+import {
+  buildTargets,
+  CAMERA_FOV,
+  CAMERA_Z,
+  TILT,
+  type Viewport,
+} from '@/scene/targets';
 import { pointFragmentShader, pointVertexShader } from '@/scene/shaders';
 
 const INK = new Color('#12110f');
@@ -18,14 +24,11 @@ const PAPER = new Color('#f4f1ea');
 const ACCENT = new Color('#0f6e63');
 const OCHRE = new Color('#c89b3c');
 
-const CONTENT_MAX = 1280;
-const CONTENT_GUTTER = 80;
-const REFERENCE_RATIO = (CONTENT_MAX - CONTENT_GUTTER) / 900;
+const REFERENCE_AREA = 1512 * 982;
+const MAX_DENSITY = 2.5;
 
-function contentScale(width: number, height: number) {
-  const content = Math.min(width, CONTENT_MAX) - CONTENT_GUTTER;
-  const ratio = content / Math.max(1, height) / REFERENCE_RATIO;
-  return Math.min(1.2, Math.max(0.6, ratio));
+function densityFor({ width, height }: Viewport) {
+  return Math.min(MAX_DENSITY, Math.max(1, (width * height) / REFERENCE_AREA));
 }
 
 export type PointFieldOptions = {
@@ -38,8 +41,8 @@ export type PointFieldHandle = {
   dispose: () => void;
 };
 
-function buildGeometry(count: number, wide: boolean) {
-  const { positions, thread, seeds } = buildTargets(count, wide);
+function buildGeometry(count: number, viewport: Viewport) {
+  const { positions, thread, seeds } = buildTargets(count, viewport);
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(positions[0], 3));
   for (let i = 1; i < positions.length; i += 1) {
@@ -70,8 +73,8 @@ export function createPointField({
   container.appendChild(renderer.domElement);
 
   const scene = new Scene();
-  const camera = new PerspectiveCamera(40, 1, 0.1, 30);
-  camera.position.set(0, 0, 6);
+  const camera = new PerspectiveCamera(CAMERA_FOV, 1, 0.1, 30);
+  camera.position.set(0, 0, CAMERA_Z);
 
   const material = new ShaderMaterial({
     vertexShader: pointVertexShader,
@@ -98,11 +101,28 @@ export function createPointField({
     },
   });
 
-  let wide = container.clientWidth >= 768;
-  let geometry = buildGeometry(count, wide);
+  const measure = (): Viewport => ({
+    width: container.clientWidth,
+    height: container.clientHeight,
+  });
+  let viewport = measure();
+  let wide = viewport.width >= 768;
+  let density = densityFor(viewport);
+  let geometry = buildGeometry(Math.round(count * density), viewport);
   const points = new Points(geometry, material);
   points.frustumCulled = false;
   scene.add(points);
+
+  let rebuildTimer = 0;
+  const rebuild = () => {
+    rebuildTimer = 0;
+    viewport = measure();
+    wide = viewport.width >= 768;
+    density = densityFor(viewport);
+    geometry.dispose();
+    geometry = buildGeometry(Math.round(count * density), viewport);
+    points.geometry = geometry;
+  };
 
   const resize = () => {
     const width = container.clientWidth;
@@ -114,14 +134,9 @@ export function createPointField({
     camera.updateProjectionMatrix();
     material.uniforms.uPixelRatio.value = dpr;
 
-    const nextWide = width >= 768;
-    if (nextWide !== wide) {
-      wide = nextWide;
-      geometry.dispose();
-      geometry = buildGeometry(count, wide);
-      points.geometry = geometry;
-    }
-    points.scale.setScalar(wide ? contentScale(width, height) : 1);
+    if (width === viewport.width && height === viewport.height) return;
+    window.clearTimeout(rebuildTimer);
+    rebuildTimer = window.setTimeout(rebuild, 200);
   };
 
   const observer = new ResizeObserver(resize);
@@ -151,11 +166,12 @@ export function createPointField({
     u.uSplitY.value = frame.splitY;
     u.uThemeAbove.value = frame.themeAbove;
     u.uThemeBelow.value = frame.themeBelow;
-    u.uStrength.value = wide ? 1 : 0.5;
+    u.uStrength.value = (wide ? 1 : 0.5) / Math.sqrt(density);
 
     const targetY =
-      sceneProgress.pointerX * 0.18 + Math.sin(elapsed * 0.15) * 0.08;
-    const targetX = -sceneProgress.pointerY * 0.12;
+      sceneProgress.pointerX * TILT.pointerYaw +
+      Math.sin(elapsed * 0.15) * TILT.swayYaw;
+    const targetX = -sceneProgress.pointerY * TILT.pointerPitch;
     points.rotation.y +=
       (targetY - points.rotation.y) * Math.min(1, delta * 2.5);
     points.rotation.x +=
@@ -185,6 +201,7 @@ export function createPointField({
       renderer.setAnimationLoop(null);
       document.removeEventListener('visibilitychange', onVisibility);
       observer.disconnect();
+      window.clearTimeout(rebuildTimer);
       geometry.dispose();
       material.dispose();
       renderer.dispose();
