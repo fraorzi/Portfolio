@@ -17,6 +17,10 @@ export const pointVertexShader = /* glsl */ `
   uniform float uSize;
   uniform float uPixelRatio;
   uniform float uShift;
+  uniform vec3 uPivots[6];
+  uniform vec3 uThreadPivot;
+  uniform float uYaw;
+  uniform float uPitch;
   uniform float uSplitY;
   uniform float uThemeAbove;
   uniform float uThemeBelow;
@@ -25,12 +29,26 @@ export const pointVertexShader = /* glsl */ `
   varying float vDepth;
   varying float vTheme;
 
-  vec3 viaThread(vec3 from, vec3 to, float k) {
+  vec2 morph(float k) {
     float f = clamp(uProgress - k, 0.0, 1.0);
     float s = aSeed * 0.14;
-    float toThread = smoothstep(0.04 + s, ${threadStart}, f);
-    float toShape = smoothstep(${threadEnd}, 0.96 - s, f);
-    return mix(mix(from, aThread, toThread), to, toShape);
+    return vec2(
+      smoothstep(0.04 + s, ${threadStart}, f),
+      smoothstep(${threadEnd}, 0.96 - s, f)
+    );
+  }
+
+  vec3 viaThread(vec3 from, vec3 thread, vec3 to, vec2 w) {
+    return mix(mix(from, thread, w.x), to, w.y);
+  }
+
+  vec3 tilt(vec3 v) {
+    float cy = cos(uYaw);
+    float sy = sin(uYaw);
+    float cx = cos(uPitch);
+    float sx = sin(uPitch);
+    v = vec3(v.x * cy + v.z * sy, v.y, -v.x * sy + v.z * cy);
+    return vec3(v.x, v.y * cx - v.z * sx, v.y * sx + v.z * cx);
   }
 
   vec3 drift(vec3 p) {
@@ -44,12 +62,24 @@ export const pointVertexShader = /* glsl */ `
 
   void main() {
     vec3 p = position;
-    p = viaThread(p, aT1, 0.0);
-    p = viaThread(p, aT2, 1.0);
-    p = viaThread(p, aT3, 2.0);
-    p = viaThread(p, aT4, 3.0);
-    p = viaThread(p, aT5, 4.0);
+    vec3 pivot = uPivots[0];
+    vec2 w = morph(0.0);
+    p = viaThread(p, aThread, aT1, w);
+    pivot = viaThread(pivot, uThreadPivot, uPivots[1], w);
+    w = morph(1.0);
+    p = viaThread(p, aThread, aT2, w);
+    pivot = viaThread(pivot, uThreadPivot, uPivots[2], w);
+    w = morph(2.0);
+    p = viaThread(p, aThread, aT3, w);
+    pivot = viaThread(pivot, uThreadPivot, uPivots[3], w);
+    w = morph(3.0);
+    p = viaThread(p, aThread, aT4, w);
+    pivot = viaThread(pivot, uThreadPivot, uPivots[4], w);
+    w = morph(4.0);
+    p = viaThread(p, aThread, aT5, w);
+    pivot = viaThread(pivot, uThreadPivot, uPivots[5], w);
     p += drift(p);
+    p = pivot + tilt(p - pivot);
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;

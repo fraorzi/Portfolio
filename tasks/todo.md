@@ -143,3 +143,14 @@ Przyczyna: skala treści (0.6-1.2) obejmowała cały mesh, więc na dużych ekra
 Przyczyna pasa: canvas wyświetlał się w rozmiarze bufora (`setSize(..., false)` bez rozmiaru CSS, a `inset: 0` nie rozciąga canvasa), więc przy dpr > 1 cała scena była 1.5× za duża od lewego górnego rogu i podział koloru lądował 1.5× niżej niż krawędź. Poprawka: `width/height: 100%` na canvasie. Wcześniejsze testy czytały bufor WebGL, nie obraz na ekranie, dlatego tego nie złapały.
 
 Design: wracają oryginalne kształty i rozmiary (świat, rosną z ekranem), x kształtów idzie za kolumnami treści, linia/oplot/helisa od krawędzi do krawędzi. Kształt jedzie ze swoją sekcją także przy wjeździe (`sectionShift`), więc nie wisi nad tekstem w połowie scrolla. Helisa w Recent niżej i cieńsza (muska ostatni wiersz), stos pierścieni w Scope odrobinę niżej na desktopie. Weryfikacja: offscreen render tym samym shaderem + tła sekcji + prostokąty tekstu z DOM dla 1512×860, 2560×1440 i 390×844, w spoczynku i w trakcie wjazdu sekcji; zrzuty panelu w 60 fps przy granicy Scope/Recent w trakcie scrolla Lenisa.
+
+## Linia w marginesie, płynniejszy morphing, logo w pierścieniu (2026-10-03)
+
+- [x] Linia między sekcjami (desktop): środek fali w połowie prawego marginesu (między treścią a krawędzią ekranu), amplituda mieści się w marginesie
+- [x] Obrót od kursora i kołysanie wokół środka każdego kształtu (pivot w shaderze), żeby linia i pierścień nie odjeżdżały w bok
+- [x] Wolniejsze wygładzanie postępu morphingu
+- [x] About: pierścień centrowany na logo (`data-scene-anchor`, pozycja z DOM), logo bez zmian
+
+### Review
+
+Linia: `threadX = 1 - gutter / width`, amplituda `min(fala referencyjna, 0.6 · gutter / width)`, x liczone per punkt na jego głębokości, więc po rzutowaniu siedzi dokładnie w marginesie (1512 px: środek 1434 px, treść kończy się na 1356 px). Obrót: wcześniej cały mesh obracał się wokół środka świata, przez co linia przy krawędzi przesuwała się przy ruchu kursora o ~100 px. Teraz shader obraca punkt wokół centroidu bieżącego kształtu (centroidy liczone w `buildTargets`, mieszane tymi samymi wagami co morphing). Morphing: współczynnik wygładzania 6 → 3. About: wrapper `data-scene-anchor` ma dokładnie 96×96 jak logo (układ bez zmian), `pointField` przebudowuje geometrię, gdy zmienią się kotwice. Na telefonie logo jest pod akapitem, więc pierścień zostaje w górnym pasie. Weryfikacja: podgląd offscreen 1512×860 (spoczynek, przechył ±0.26/0.12, wjazd sekcji) i 390×844.

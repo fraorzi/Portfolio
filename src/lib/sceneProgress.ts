@@ -2,7 +2,13 @@ import { footerTheme, sections, type SectionTheme } from '@/content/site';
 
 export const SCENE_STOPS = sections.length;
 
-type Layout = { tops: number[]; footerTop: number };
+export type ScreenPoint = { x: number; y: number };
+
+type Layout = {
+  tops: number[];
+  footerTop: number;
+  anchors: (ScreenPoint | null)[];
+};
 
 export const sceneProgress: {
   layout: Layout | null;
@@ -20,17 +26,28 @@ export function themeValue(theme: SectionTheme) {
 
 export function measureSections(): Layout {
   const tops: number[] = [];
+  const anchors: (ScreenPoint | null)[] = [];
   for (const meta of sections) {
     const section = document.getElementById(meta.id);
-    tops.push(
-      section ? section.getBoundingClientRect().top + window.scrollY : 0,
+    const box = section?.getBoundingClientRect();
+    tops.push(box ? box.top + window.scrollY : 0);
+    const anchor = section
+      ?.querySelector('[data-scene-anchor]')
+      ?.getBoundingClientRect();
+    anchors.push(
+      box && anchor
+        ? {
+            x: anchor.left + anchor.width / 2,
+            y: anchor.top + anchor.height / 2 - box.top,
+          }
+        : null,
     );
   }
   const footer = document.querySelector('footer');
   const footerTop = footer
     ? footer.getBoundingClientRect().top + window.scrollY
     : Number.POSITIVE_INFINITY;
-  return { tops, footerTop };
+  return { tops, footerTop, anchors };
 }
 
 export const MAX_OFFSET = 0.55;
