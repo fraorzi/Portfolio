@@ -46,7 +46,7 @@ export const contact = {
 
 export const hero = {
   title: 'Front-end developer. Interfejsy, ruch i\u00a03D w\u00a0przeglądarce',
-  lead: 'Franciszek Orzechowski, Warszawa. Na co dzień React i TypeScript; kiedy trzeba zejść niżej — Node, Java, Swift i bazy danych.',
+  lead: 'Franciszek Orzechowski, Warszawa. Na co dzień React i TypeScript, a kiedy trzeba zejść niżej: Node, Java, Swift i bazy danych.',
   primaryCta: 'Zobacz projekt',
   secondaryCta: 'Napisz do mnie',
 };
@@ -54,7 +54,7 @@ export const hero = {
 export const about = {
   title:
     'Piszę front-end od kilku lat. Backend znam na tyle, żeby projektować całość, nie tylko warstwę widoku',
-  body: 'Pracuję głównie w React i TypeScript. Interesują mnie ruch, 3D w przeglądarce i te małe decyzje, przez które produkt wydaje się przemyślany. Ostatnio dużo czasu spędzam w Swift i C, pisząc narzędzie do przeglądu kodu. Znam też drugą stronę — Node, Java, bazy danych — więc z backendem rozmawiam bez tłumacza.',
+  body: 'Pracuję głównie w React i TypeScript. Interesują mnie ruch, 3D w przeglądarce i te małe decyzje, przez które produkt wydaje się przemyślany. Ostatnio dużo czasu spędzam w Swift i C, pisząc narzędzie do przeglądu kodu. Znam też drugą stronę (Node, Java, bazy danych), więc z backendem rozmawiam bez tłumacza.',
   facts: [
     { label: 'Baza', value: 'Warszawa' },
     { label: 'Praca', value: 'zdalnie lub hybrydowo' },
@@ -79,12 +79,12 @@ export const projects: readonly Project[] = [
     repo: { owner: 'fraorzi', name: 'diffscope_swift' },
     title: 'DiffScope',
     summary:
-      'Aplikacja macOS do przeglądu diffów w lokalnych repozytoriach Git. Dopasowuje zmiany strukturalnie, nie tylko liniami — i nigdy nie ukrywa różnicy w tekście.',
+      'Aplikacja macOS do przeglądu diffów w lokalnych repozytoriach Git. Dopasowuje zmiany strukturalnie, nie tylko liniami, i nigdy nie ukrywa różnicy w tekście.',
     role: 'Solo: produkt, architektura, silnik diffów',
     platform: 'macOS · tylko odczyt · bez sieci',
     detail: [
       'Silnik w C wyrównuje edycje strukturalnie: usunięty wrapper JSX, przestawione propsy czy przeformatowany plik czytają się jako to, czym są.',
-      'Trzy tryby widoku — strukturalny, rozszerzony, surowy — zawsze side-by-side. Dokładny tekst źródłowy jest źródłem prawdy.',
+      'Trzy tryby widoku: strukturalny, rozszerzony i surowy, zawsze side-by-side. Dokładny tekst źródłowy jest źródłem prawdy.',
       'Diff strukturalny dla TS, TSX, JS i JSX; pozostałe pliki jako czytelnie oznaczony diff tekstowy.',
     ],
     stack: ['Swift', 'C', 'SwiftUI', 'Git'],
@@ -141,7 +141,7 @@ export const recentCopy = {
   lead: 'Tempo pracy z ostatnich dwunastu tygodni.',
   commits: (weeks: number) => `commitów w ostatnich ${weeks} tygodniach`,
   activityLabel: 'Commity tygodniowo',
-  empty: 'GitHub chwilowo nie odpowiada — pokazuję ostatni zapisany stan.',
+  empty: 'GitHub chwilowo nie odpowiada, więc pokazuję ostatni zapisany stan.',
 };
 
 export const contactCopy = {

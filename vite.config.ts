@@ -20,12 +20,23 @@ function reactScanDev(enabled: boolean): Plugin {
   };
 }
 
+function siteUrl(url: string): Plugin {
+  return {
+    name: 'site-url',
+    transformIndexHtml: {
+      order: 'pre',
+      handler: (html) => html.replaceAll('%SITE_URL%', url),
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const scanEnabled = env.REACT_SCAN !== 'false';
+  const site = (env.URL ?? 'http://localhost:4173').replace(/\/$/, '');
 
   return {
-    plugins: [react(), tailwindcss(), reactScanDev(scanEnabled)],
+    plugins: [react(), tailwindcss(), reactScanDev(scanEnabled), siteUrl(site)],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

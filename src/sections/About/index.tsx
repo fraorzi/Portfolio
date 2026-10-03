@@ -14,7 +14,7 @@ export function About() {
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: bodyRef,
-    offset: ['start 80%', 'end 45%'],
+    offset: ['start 85%', 'end 60%'],
   });
 
   useMotionValueEvent(scrollYProgress, 'change', (progress) => {
@@ -66,11 +66,13 @@ export function About() {
         </div>
 
         <div className="flex flex-col justify-between gap-10 md:col-span-4 md:col-start-9">
-          <Monogram
-            draw="inView"
-            strokeWidth={1.25}
-            className="text-foreground h-20 w-20 md:h-24 md:w-24"
-          />
+          <div data-scene-anchor className="w-fit">
+            <Monogram
+              draw="inView"
+              strokeWidth={1.25}
+              className="text-foreground h-20 w-20 md:h-24 md:w-24"
+            />
+          </div>
           <dl className="border-border grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-t pt-5 text-xs">
             {about.facts.map((fact) => (
               <div key={fact.label} className="contents">

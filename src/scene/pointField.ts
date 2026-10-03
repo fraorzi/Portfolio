@@ -7,16 +7,36 @@ import {
   Points,
   Scene,
   ShaderMaterial,
+  Vector3,
   WebGLRenderer,
 } from 'three';
-import { sceneProgress } from '@/lib/sceneProgress';
-import { buildTargets } from '@/scene/targets';
+import {
+  readSceneFrame,
+  SCENE_STOPS,
+  sceneProgress,
+  sectionShift,
+  type ScreenPoint,
+} from '@/lib/sceneProgress';
+import {
+  buildTargets,
+  CAMERA_FOV,
+  CAMERA_Z,
+  TILT,
+  type Viewport,
+} from '@/scene/targets';
 import { pointFragmentShader, pointVertexShader } from '@/scene/shaders';
 
 const INK = new Color('#12110f');
 const PAPER = new Color('#f4f1ea');
 const ACCENT = new Color('#0f6e63');
 const OCHRE = new Color('#c89b3c');
+
+const REFERENCE_AREA = 1512 * 982;
+const MAX_DENSITY = 2.5;
+
+function densityFor({ width, height }: Viewport) {
+  return Math.min(MAX_DENSITY, Math.max(1, (width * height) / REFERENCE_AREA));
+}
 
 export type PointFieldOptions = {
   container: HTMLElement;
@@ -28,8 +48,17 @@ export type PointFieldHandle = {
   dispose: () => void;
 };
 
-function buildGeometry(count: number, wide: boolean) {
-  const { positions, thread, seeds } = buildTargets(count, wide);
+type Anchors = readonly (ScreenPoint | null)[];
+
+function anchorKey(anchors: Anchors) {
+  return anchors
+    .map((a) => (a ? `${Math.round(a.x)},${Math.round(a.y)}` : '-'))
+    .join('|');
+}
+
+function buildGeometry(count: number, viewport: Viewport, anchors: Anchors) {
+  const targets = buildTargets(count, viewport, anchors);
+  const { positions, thread, seeds } = targets;
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(positions[0], 3));
   for (let i = 1; i < positions.length; i += 1) {
@@ -38,7 +67,11 @@ function buildGeometry(count: number, wide: boolean) {
   geometry.setAttribute('aThread', new BufferAttribute(thread, 3));
   geometry.setAttribute('aSeed', new BufferAttribute(seeds, 1));
   geometry.computeBoundingSphere();
-  return geometry;
+  return {
+    geometry,
+    pivots: targets.pivots,
+    threadPivot: targets.threadPivot,
+  };
 }
 
 export function createPointField({
@@ -56,13 +89,14 @@ export function createPointField({
   renderer.setClearColor(0x000000, 0);
   renderer.domElement.style.position = 'absolute';
   renderer.domElement.style.inset = '0';
+  renderer.domElement.style.width = '100%';
+  renderer.domElement.style.height = '100%';
   renderer.domElement.style.pointerEvents = 'none';
   container.appendChild(renderer.domElement);
 
   const scene = new Scene();
-  const camera = new PerspectiveCamera(40, 1, 0.1, 30);
-  camera.position.set(0, 0, 6);
-  const viewHeight = 2 * 6 * Math.tan((camera.fov * Math.PI) / 360);
+  const camera = new PerspectiveCamera(CAMERA_FOV, 1, 0.1, 30);
+  camera.position.set(0, 0, CAMERA_Z);
 
   const material = new ShaderMaterial({
     vertexShader: pointVertexShader,
@@ -73,6 +107,13 @@ export function createPointField({
     blending: NormalBlending,
     uniforms: {
       uProgress: { value: 0 },
+      uShift: { value: 0 },
+      uPivots: {
+        value: Array.from({ length: SCENE_STOPS }, () => new Vector3()),
+      },
+      uThreadPivot: { value: new Vector3() },
+      uYaw: { value: 0 },
+      uPitch: { value: 0 },
       uTime: { value: 0 },
       uSize: { value: 2.2 },
       uPixelRatio: { value: 1 },
@@ -88,11 +129,45 @@ export function createPointField({
     },
   });
 
-  let wide = container.clientWidth >= 768;
-  let geometry = buildGeometry(count, wide);
+  const measure = (): Viewport => ({
+    width: container.clientWidth,
+    height: container.clientHeight,
+  });
+  let viewport = measure();
+  let wide = viewport.width >= 768;
+  let density = densityFor(viewport);
+  let sectionLayout = sceneProgress.layout;
+  let builtAnchors = '';
+
+  const build = () => {
+    const anchors = sceneProgress.layout?.anchors ?? [];
+    builtAnchors = anchorKey(anchors);
+    const built = buildGeometry(Math.round(count * density), viewport, anchors);
+    const u = material.uniforms;
+    built.pivots.forEach((pivot, i) => u.uPivots.value[i].set(...pivot));
+    u.uThreadPivot.value.set(...built.threadPivot);
+    return built.geometry;
+  };
+
+  let geometry = build();
   const points = new Points(geometry, material);
   points.frustumCulled = false;
   scene.add(points);
+
+  let rebuildTimer = 0;
+  const rebuild = () => {
+    rebuildTimer = 0;
+    viewport = measure();
+    wide = viewport.width >= 768;
+    density = densityFor(viewport);
+    geometry.dispose();
+    geometry = build();
+    points.geometry = geometry;
+  };
+  const scheduleRebuild = () => {
+    window.clearTimeout(rebuildTimer);
+    rebuildTimer = window.setTimeout(rebuild, 200);
+  };
 
   const resize = () => {
     const width = container.clientWidth;
@@ -104,13 +179,8 @@ export function createPointField({
     camera.updateProjectionMatrix();
     material.uniforms.uPixelRatio.value = dpr;
 
-    const nextWide = width >= 768;
-    if (nextWide !== wide) {
-      wide = nextWide;
-      geometry.dispose();
-      geometry = buildGeometry(count, wide);
-      points.geometry = geometry;
-    }
+    if (width === viewport.width && height === viewport.height) return;
+    scheduleRebuild();
   };
 
   const observer = new ResizeObserver(resize);
@@ -119,7 +189,8 @@ export function createPointField({
 
   let last = performance.now();
   let smoothProgress = 0;
-  let smoothOffset = 0;
+  let yaw = 0;
+  let pitch = 0;
   let elapsed = 0;
   const stats = { frames: 0, slow: 0, reported: false };
   let visible = !document.hidden;
@@ -130,27 +201,34 @@ export function createPointField({
     if (!visible) return;
     elapsed += delta;
 
-    smoothProgress +=
-      (sceneProgress.value - smoothProgress) * Math.min(1, delta * 6);
-    smoothOffset +=
-      (sceneProgress.offset - smoothOffset) * Math.min(1, delta * 8);
-    camera.position.y = -smoothOffset * viewHeight;
+    if (sceneProgress.layout !== sectionLayout) {
+      sectionLayout = sceneProgress.layout;
+      if (anchorKey(sectionLayout?.anchors ?? []) !== builtAnchors) {
+        scheduleRebuild();
+      }
+    }
+
+    const frame = readSceneFrame();
+    smoothProgress += (frame.value - smoothProgress) * Math.min(1, delta * 3);
 
     const u = material.uniforms;
     u.uProgress.value = smoothProgress;
+    u.uShift.value = sectionShift(frame, smoothProgress) * 2;
     u.uTime.value = elapsed;
     u.uOpacity.value = Math.min(1, u.uOpacity.value + delta * 0.8);
-    u.uSplitY.value = sceneProgress.splitY;
-    u.uThemeAbove.value = sceneProgress.themeAbove;
-    u.uThemeBelow.value = sceneProgress.themeBelow;
-    u.uStrength.value = wide ? 1 : 0.5;
+    u.uSplitY.value = frame.splitY;
+    u.uThemeAbove.value = frame.themeAbove;
+    u.uThemeBelow.value = frame.themeBelow;
+    u.uStrength.value = (wide ? 1 : 0.5) / Math.sqrt(density);
 
-    const targetY = sceneProgress.pointerX * 0.18 + elapsed * 0.02;
-    const targetX = -sceneProgress.pointerY * 0.12;
-    points.rotation.y +=
-      (targetY - points.rotation.y) * Math.min(1, delta * 2.5);
-    points.rotation.x +=
-      (targetX - points.rotation.x) * Math.min(1, delta * 2.5);
+    const targetYaw =
+      sceneProgress.pointerX * TILT.pointerYaw +
+      Math.sin(elapsed * 0.15) * TILT.swayYaw;
+    const targetPitch = -sceneProgress.pointerY * TILT.pointerPitch;
+    yaw += (targetYaw - yaw) * Math.min(1, delta * 2.5);
+    pitch += (targetPitch - pitch) * Math.min(1, delta * 2.5);
+    u.uYaw.value = yaw;
+    u.uPitch.value = pitch;
 
     renderer.render(scene, camera);
 
@@ -176,6 +254,7 @@ export function createPointField({
       renderer.setAnimationLoop(null);
       document.removeEventListener('visibilitychange', onVisibility);
       observer.disconnect();
+      window.clearTimeout(rebuildTimer);
       geometry.dispose();
       material.dispose();
       renderer.dispose();

@@ -4,32 +4,70 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <title>Franciszek Orzechowski — Portfolio</title>
+    <title>Franciszek Orzechowski · Front-end developer</title>
     <meta
       name="description"
-      content="Portfolio Franka Orzechowskiego — front-end developer specjalizujący się w nowoczesnych interfejsach, animacjach i 3D."
+      content="Franciszek Orzechowski, front-end developer z Warszawy. React i TypeScript, ruch i 3D w przeglądarce, a do tego backend: Node, Java i bazy danych."
     />
-
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Franciszek Orzechowski — Portfolio" />
-    <meta
-      property="og:description"
-      content="Front-end developer · interfejsy, motion, 3D."
-    />
-    <meta property="og:locale" content="pl_PL" />
-    <meta property="og:image" content="/og.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta name="author" content="Franciszek Orzechowski" />
+    <link rel="canonical" href="%SITE_URL%/" />
     <meta name="theme-color" content="#12110f" />
 
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="%SITE_URL%/" />
+    <meta property="og:site_name" content="Franciszek Orzechowski" />
+    <meta
+      property="og:title"
+      content="Franciszek Orzechowski · Front-end developer"
+    />
+    <meta
+      property="og:description"
+      content="Front-end developer z Warszawy. Interfejsy, ruch i 3D w przeglądarce."
+    />
+    <meta property="og:locale" content="pl_PL" />
+    <meta property="og:image" content="%SITE_URL%/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Franciszek Orzechowski, front-end developer. Węzeł z cząsteczek na ciemnym tle."
+    />
+
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Franciszek Orzechowski — Portfolio" />
+    <meta
+      name="twitter:title"
+      content="Franciszek Orzechowski · Front-end developer"
+    />
     <meta
       name="twitter:description"
-      content="Front-end developer · interfejsy, motion, 3D."
+      content="Front-end developer z Warszawy. Interfejsy, ruch i 3D w przeglądarce."
     />
-    <meta name="twitter:image" content="/og.png" />
+    <meta name="twitter:image" content="%SITE_URL%/og.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Franciszek Orzechowski, front-end developer. Węzeł z cząsteczek na ciemnym tle."
+    />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Franciszek Orzechowski",
+        "jobTitle": "Front-end developer",
+        "url": "%SITE_URL%/",
+        "image": "%SITE_URL%/og.png",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Warszawa",
+          "addressCountry": "PL"
+        },
+        "knowsAbout": ["React", "TypeScript", "WebGL", "Three.js", "Node.js"],
+        "sameAs": ["https://github.com/fraorzi"]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

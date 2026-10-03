@@ -2,12 +2,20 @@ import { footerTheme, sections, type SectionTheme } from '@/content/site';
 
 export const SCENE_STOPS = sections.length;
 
-export const sceneProgress = {
-  value: 0,
-  offset: 0,
-  splitY: 2,
-  themeAbove: 1,
-  themeBelow: 1,
+export type ScreenPoint = { x: number; y: number };
+
+type Layout = {
+  tops: number[];
+  footerTop: number;
+  anchors: (ScreenPoint | null)[];
+};
+
+export const sceneProgress: {
+  layout: Layout | null;
+  pointerX: number;
+  pointerY: number;
+} = {
+  layout: null,
   pointerX: 0,
   pointerY: 0,
 };
@@ -16,24 +24,34 @@ export function themeValue(theme: SectionTheme) {
   return theme === 'dark' ? 1 : 0;
 }
 
-type Layout = { tops: number[]; footerTop: number };
-
 export function measureSections(): Layout {
   const tops: number[] = [];
+  const anchors: (ScreenPoint | null)[] = [];
   for (const meta of sections) {
     const section = document.getElementById(meta.id);
-    tops.push(
-      section ? section.getBoundingClientRect().top + window.scrollY : 0,
+    const box = section?.getBoundingClientRect();
+    tops.push(box ? box.top + window.scrollY : 0);
+    const anchor = section
+      ?.querySelector('[data-scene-anchor]')
+      ?.getBoundingClientRect();
+    anchors.push(
+      box && anchor
+        ? {
+            x: anchor.left + anchor.width / 2,
+            y: anchor.top + anchor.height / 2 - box.top,
+          }
+        : null,
     );
   }
   const footer = document.querySelector('footer');
   const footerTop = footer
     ? footer.getBoundingClientRect().top + window.scrollY
     : Number.POSITIVE_INFINITY;
-  return { tops, footerTop };
+  return { tops, footerTop, anchors };
 }
 
-const MAX_OFFSET = 0.55;
+export const MAX_OFFSET = 0.55;
+export const THREAD_WINDOW = { start: 0.42, end: 0.58 };
 
 function clamp01(n: number, max = 1) {
   return Math.min(max, Math.max(0, n));
@@ -41,11 +59,26 @@ function clamp01(n: number, max = 1) {
 
 export type SceneFrame = {
   value: number;
-  offset: number;
+  offsets: number[];
   splitY: number;
   themeAbove: number;
   themeBelow: number;
 };
+
+const IDLE_FRAME: SceneFrame = {
+  value: 0,
+  offsets: [],
+  splitY: 2,
+  themeAbove: 1,
+  themeBelow: 1,
+};
+
+export function readSceneFrame(): SceneFrame {
+  const { layout } = sceneProgress;
+  return layout
+    ? computeFrame(layout, window.scrollY, window.innerHeight)
+    : IDLE_FRAME;
+}
 
 export function computeFrame(
   layout: Layout,
@@ -61,12 +94,9 @@ export function computeFrame(
     value += clamp01((scrollY + vh - tops[k]) / vh);
   }
 
-  const current = Math.min(last, Math.floor(value));
-  const frac = value - current;
-  const scrolledPast = (k: number) =>
-    k > last ? 0 : clamp01((scrollY - tops[k]) / vh, MAX_OFFSET);
-  const offset =
-    scrolledPast(current) * (1 - frac) + scrolledPast(current + 1) * frac;
+  const offsets = tops.map((top) =>
+    Math.max(-1, Math.min(MAX_OFFSET, (scrollY - top) / vh)),
+  );
 
   const edges = tops.map((top, k) => ({
     top,
@@ -95,14 +125,25 @@ export function computeFrame(
   const screenY = (nearest.top - scrollY) / vh;
   if (screenY < -0.1 || screenY > 1.1) {
     const theme = nearest.top <= y ? nearest.below : nearest.above;
-    return { value, offset, splitY: 2, themeAbove: theme, themeBelow: theme };
+    return { value, offsets, splitY: 2, themeAbove: theme, themeBelow: theme };
   }
 
   return {
     value,
-    offset,
+    offsets,
     splitY: 1 - screenY * 2,
     themeAbove: nearest.above,
     themeBelow: nearest.below,
   };
+}
+
+export function sectionShift(frame: SceneFrame, progress: number) {
+  const index = Math.floor(progress);
+  const from = frame.offsets[index] ?? 0;
+  const to = frame.offsets[index + 1] ?? from;
+  const t = clamp01(
+    (progress - index - THREAD_WINDOW.start) /
+      (THREAD_WINDOW.end - THREAD_WINDOW.start),
+  );
+  return from + (to - from) * t * t * (3 - 2 * t);
 }

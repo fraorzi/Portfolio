@@ -104,3 +104,53 @@ Krótkie podsumowanie po każdej zamkniętej partii. Format: `YYYY-MM-DD — co 
 ### Review
 
 Zmiany w `Navbar.tsx` (stałe `MOBILE_SIZE/WIDTH/STEP`, wysokość kontenera filtra liczona z `navItems.length`), `GooeyNav.tsx`, `lib/gooeyNav.ts`. Typecheck, eslint, prettier czyste. Zweryfikowane w przeglądarce przez pomiar DOM i zrzuty na 1024 px i 375 px.
+
+---
+
+## Scena, czytelność i meta (2026-10-02, `fix/scene-readability-meta`)
+
+- [x] Kolor cząsteczek na krawędzi sekcji: `uSplitY` liczone w klatce renderu z bieżącego `scrollY` (dziś canvas jest klatkę za DOM, przy szybkim scrollu Lenisa linia zostaje ~10-15% w tyle)
+- [x] About: reveal słowo po słowie kończy się wcześniej (`end 45%` → `end 60%`)
+- [x] Cząsteczki na tekście: usunąć nieograniczony obrót `elapsed * 0.02` (po kilku minutach kształty przejeżdżają nad tekst), helisa w Recent poza listą commitów; pomiar pokrycia tekstu na desktopie i mobile
+- [x] Em dashe: copy w `site.ts`, `index.html`, wiadomości commitów z GitHuba
+- [x] Meta: absolutne URL-e (Netlify `URL`), canonical, `og:url`, `og:site_name`, alt obrazka, author, apple-touch-icon, JSON-LD; nowy `og.png` zgodny z obecnym designem
+
+### Review
+
+- Kolor: `useSceneScroll` → `useSceneLayout` (tylko pomiar sekcji), `readSceneFrame()` w ticku `pointField.ts`. Test: przewinięcie w rAF i odczyt pikseli z WebGL w następnej klatce. Przed: krawędź DOM 300 px, zmiana koloru 450 px. Po: 300/300, 550/550, 200/200; w trakcie scrolla Lenisa zgodność co do 4 px.
+- Nachodzenie: obrót to parallax + `sin` (±0.08 rad); orbita wokół monogramu, oplot pod kartami, helisa pionowo w lewej kolumnie Recent; mesh skalowany szerokością treści / wysokością (0.6-1.2); offset sekcji jako przesunięcie w przestrzeni ekranu (`uShift`) zamiast ruchu kamery, bez wygładzania; mobile: pas kształtów wyżej (`shiftY 1.4`, `scale 0.55`), mniejsza spirala. Pomiar: rzut punktów kontra prostokąty tekstu (pad 6-8 px) dla 1024×768, 1280×800, 1440×700, 1440×900, 1512×945, 1920×1080, 2560×1440, 768×1024, 360×640, 375×812, 390×664, 430×932, przy każdej pozycji scrolla z ukształtowaną figurą: 0% (najgorszy przypadek z parallaxem 1.7% przy 1440×700). Realny render WebGL 1440×900: 0% pikseli cząsteczek na tekście we wszystkich sekcjach.
+- Reveal About: ostatnie słowo ma krycie 1.00 przy dole akapitu na 60% ekranu (0.72 przy 62%).
+- Em dashe: 0 w DOM, atrybutach i `<head>`; wiadomości commitów normalizowane w `github.ts` (`—` → `-`).
+- Meta: build z `URL=https://franciszek-test.netlify.app` daje absolutne canonical/OG/Twitter/JSON-LD, brak `%SITE_URL%` w `dist/index.html`. Nowe `og.png` (1200×630) i `apple-touch-icon.png` (180×180) narysowane z geometrii `targets.ts` i fontów strony.
+- Typecheck, lint (1 stare ostrzeżenie w `StatefulButton.tsx`), Prettier czyste.
+
+## Skala sceny na dużych ekranach (2026-10-02)
+
+- [x] Linia między sekcjami zawsze od góry do dołu, oplot w Projects i helisa (mobile) od boku do boku, helisa w Recent do dolnej krawędzi
+- [x] Liczba cząsteczek rośnie z powierzchnią ekranu
+
+### Review
+
+Przyczyna: skala treści (0.6-1.2) obejmowała cały mesh, więc na dużych ekranach linia i oplot kurczyły się razem z kształtami przy treści. Teraz `buildTargets(count, viewport)` skaluje tylko kształty przy treści, a linia, oplot i koniec helisy liczą zasięg z frustum na swojej głębokości, z zapasem na przesunięcie sekcji (`MAX_OFFSET`) i największy przechył (`TILT`). Liczba punktów: baza z tieru × powierzchnia / (1512×982), 1-2.5×, jasność punktu / √gęstość. Weryfikacja: model rzutowania dla 360×640 do 3440×1440, wszystkie kombinacje przechyłu i przesunięcia, zero przerw na krawędziach, nachodzenie na tekst maks. 1.3% (1440×700). Realny shader (render offscreen, 2560×1440, 59.5k punktów): oplot x 0-2559, linia y 0-1439 także przy przesunięciu 1.1 i przechyle, helisa do 1439.
+
+## Rozmiar canvasa, design scen i kształty przy sekcji (2026-10-03)
+
+- [x] Pas ciemnych cząsteczek pod krawędzią sekcji na MacBooku
+- [x] Mniej chowania kształtów, priorytet dla designu
+
+### Review
+
+Przyczyna pasa: canvas wyświetlał się w rozmiarze bufora (`setSize(..., false)` bez rozmiaru CSS, a `inset: 0` nie rozciąga canvasa), więc przy dpr > 1 cała scena była 1.5× za duża od lewego górnego rogu i podział koloru lądował 1.5× niżej niż krawędź. Poprawka: `width/height: 100%` na canvasie. Wcześniejsze testy czytały bufor WebGL, nie obraz na ekranie, dlatego tego nie złapały.
+
+Design: wracają oryginalne kształty i rozmiary (świat, rosną z ekranem), x kształtów idzie za kolumnami treści, linia/oplot/helisa od krawędzi do krawędzi. Kształt jedzie ze swoją sekcją także przy wjeździe (`sectionShift`), więc nie wisi nad tekstem w połowie scrolla. Helisa w Recent niżej i cieńsza (muska ostatni wiersz), stos pierścieni w Scope odrobinę niżej na desktopie. Weryfikacja: offscreen render tym samym shaderem + tła sekcji + prostokąty tekstu z DOM dla 1512×860, 2560×1440 i 390×844, w spoczynku i w trakcie wjazdu sekcji; zrzuty panelu w 60 fps przy granicy Scope/Recent w trakcie scrolla Lenisa.
+
+## Linia w marginesie, płynniejszy morphing, logo w pierścieniu (2026-10-03)
+
+- [x] Linia między sekcjami (desktop): środek fali w połowie prawego marginesu (między treścią a krawędzią ekranu), amplituda mieści się w marginesie
+- [x] Obrót od kursora i kołysanie wokół środka każdego kształtu (pivot w shaderze), żeby linia i pierścień nie odjeżdżały w bok
+- [x] Wolniejsze wygładzanie postępu morphingu
+- [x] About: pierścień centrowany na logo (`data-scene-anchor`, pozycja z DOM), logo bez zmian
+
+### Review
+
+Linia: `threadX = 1 - gutter / width`, amplituda `min(fala referencyjna, 0.6 · gutter / width)`, x liczone per punkt na jego głębokości, więc po rzutowaniu siedzi dokładnie w marginesie (1512 px: środek 1434 px, treść kończy się na 1356 px). Obrót: wcześniej cały mesh obracał się wokół środka świata, przez co linia przy krawędzi przesuwała się przy ruchu kursora o ~100 px. Teraz shader obraca punkt wokół centroidu bieżącego kształtu (centroidy liczone w `buildTargets`, mieszane tymi samymi wagami co morphing). Morphing: współczynnik wygładzania 6 → 3. About: wrapper `data-scene-anchor` ma dokładnie 96×96 jak logo (układ bez zmian), `pointField` przebudowuje geometrię, gdy zmienią się kotwice. Na telefonie logo jest pod akapitem, więc pierścień zostaje w górnym pasie. Weryfikacja: podgląd offscreen 1512×860 (spoczynek, przechył ±0.26/0.12, wjazd sekcji) i 390×844.

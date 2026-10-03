@@ -1,9 +1,29 @@
-import { SCENE_STOPS } from '@/lib/sceneProgress';
+import {
+  MAX_OFFSET,
+  SCENE_STOPS,
+  THREAD_WINDOW,
+  type ScreenPoint,
+} from '@/lib/sceneProgress';
+
+export const CAMERA_Z = 6;
+export const CAMERA_FOV = 40;
+export const TILT = { pointerYaw: 0.18, pointerPitch: 0.12, swayYaw: 0.08 };
+
+const TAN = Math.tan((CAMERA_FOV * Math.PI) / 360);
+const CONTENT_MAX = 1280;
+const CONTENT_GUTTER = 80;
+const REFERENCE_RATIO = (CONTENT_MAX - CONTENT_GUTTER) / 900;
+const EDGE_MARGIN = 0.12;
+
+export type Viewport = { width: number; height: number };
+export type Vec3 = [number, number, number];
 
 export type TargetSet = {
   positions: Float32Array[];
   thread: Float32Array;
   seeds: Float32Array;
+  pivots: Vec3[];
+  threadPivot: Vec3;
 };
 
 function createRandom(seed: number) {
@@ -16,12 +36,40 @@ function createRandom(seed: number) {
   };
 }
 
-type Layout = { shiftX: number; shiftY: number; scale: number };
+type Layout = {
+  wide: boolean;
+  columnX: number;
+  shiftX: number;
+  shiftY: number;
+  scale: number;
+  aspect: number;
+  threadX: number;
+  threadSway: number;
+};
 type Builder = (
   count: number,
   random: () => number,
   layout: Layout,
+  anchor: ScreenPoint | null,
 ) => Float32Array;
+
+function edge(z: number, ndc: number, span: number, tilt: number) {
+  const reach = Math.abs(ndc) * span;
+  const world =
+    (reach * (CAMERA_Z - z) + Math.abs(z) * Math.sin(tilt)) /
+    (Math.cos(tilt) - reach * Math.sin(tilt));
+  return Math.sign(ndc) * world;
+}
+
+function edgeY(layout: Layout, z: number, ndc: number) {
+  const tilt = layout.wide ? TILT.pointerPitch : 0;
+  return edge(z, ndc, TAN, tilt);
+}
+
+function edgeX(layout: Layout, z: number, ndc: number) {
+  const tilt = (layout.wide ? TILT.pointerYaw : 0) + TILT.swayYaw;
+  return edge(z, ndc, TAN * layout.aspect, tilt);
+}
 
 function tube(random: () => number, radius: number) {
   const angle = random() * Math.PI * 2;
@@ -38,7 +86,7 @@ const knot: Builder = (count, random, layout) => {
     const x = (Math.sin(t) + 2 * Math.sin(2 * t)) * size;
     const y = (Math.cos(t) - 2 * Math.cos(2 * t)) * size;
     const z = -Math.sin(3 * t) * size;
-    out[i * 3] = x + dx + 1.5 * layout.shiftX;
+    out[i * 3] = x + dx + 1.5 * layout.columnX;
     out[i * 3 + 1] =
       y + dy + 0.6 * layout.scale * layout.shiftX + layout.shiftY;
     out[i * 3 + 2] = z;
@@ -46,33 +94,41 @@ const knot: Builder = (count, random, layout) => {
   return out;
 };
 
-const orbit: Builder = (count, random, layout) => {
+const orbit: Builder = (count, random, layout, anchor) => {
   const out = new Float32Array(count * 3);
   const radius = 1.1 * layout.scale;
   const tilt = 0.55;
+  const depth = -0.4;
+  const reach = (CAMERA_Z - depth) * TAN;
+  const center = layout.wide ? anchor : null;
+  const centerX = center
+    ? center.x * reach * layout.aspect
+    : 1.9 * layout.columnX;
+  const centerY = center ? center.y * reach : 0.15 + layout.shiftY;
   for (let i = 0; i < count; i += 1) {
     const t = random() * Math.PI * 2;
     const [dx, dy] = tube(random, 0.07 * layout.scale);
     const x = Math.cos(t) * radius;
     const z = Math.sin(t) * radius;
-    out[i * 3] = x + dx + 1.9 * layout.shiftX;
-    out[i * 3 + 1] = z * Math.sin(tilt) + dy + 0.15 + layout.shiftY;
-    out[i * 3 + 2] = z * Math.cos(tilt) - 0.4;
+    out[i * 3] = x + dx + centerX;
+    out[i * 3 + 1] = z * Math.sin(tilt) + dy + centerY;
+    out[i * 3 + 2] = z * Math.cos(tilt) + depth;
   }
   return out;
 };
 
 const braid: Builder = (count, random, layout) => {
   const out = new Float32Array(count * 3);
-  const length = 8.5 * layout.scale;
   const amplitude = 0.55 * layout.scale;
+  const wavelength = 4.25 * layout.scale;
+  const half = edgeX(layout, -1.4 - amplitude * 0.6, 1 + EDGE_MARGIN);
   for (let i = 0; i < count; i += 1) {
     const strand = i % 2;
-    const t = random();
+    const x = (random() * 2 - 1) * half;
     const phase = strand === 0 ? 0 : Math.PI;
-    const angle = t * Math.PI * 4 + phase;
+    const angle = (x / wavelength) * Math.PI * 2 + phase;
     const [dx, dy] = tube(random, 0.06 * layout.scale);
-    out[i * 3] = (t - 0.5) * length + dx;
+    out[i * 3] = x + dx;
     out[i * 3 + 1] =
       Math.sin(angle) * amplitude + dy + 0.35 * layout.scale + layout.shiftY;
     out[i * 3 + 2] = Math.cos(angle) * amplitude * 0.6 - 1.4;
@@ -83,7 +139,8 @@ const braid: Builder = (count, random, layout) => {
 const rings: Builder = (count, random, layout) => {
   const out = new Float32Array(count * 3);
   const radius = 0.7 * layout.scale;
-  const centers = [0.9, 0, -0.9].map((y) => y * layout.scale);
+  const gap = layout.wide ? 0.8 : 0.9;
+  const centers = [gap, 0, -gap].map((y) => y * layout.scale);
   for (let i = 0; i < count; i += 1) {
     const ring = i % 3;
     const t = random() * Math.PI * 2;
@@ -91,12 +148,12 @@ const rings: Builder = (count, random, layout) => {
     const r = radius + spread;
     const x = Math.cos(t) * r;
     const z = Math.sin(t) * r;
-    out[i * 3] = x - 1.9 * layout.shiftX;
+    out[i * 3] = x - 1.9 * layout.columnX;
     out[i * 3 + 1] =
       centers[ring] +
       z * 0.32 +
       (random() - 0.5) * 0.03 -
-      0.6 * layout.shiftX +
+      0.8 * layout.shiftX +
       layout.shiftY;
     out[i * 3 + 2] = z * 0.9;
   }
@@ -105,17 +162,17 @@ const rings: Builder = (count, random, layout) => {
 
 const helix: Builder = (count, random, layout) => {
   const out = new Float32Array(count * 3);
-  const length = 7.0 * layout.scale;
-  const radius = 0.75 * layout.scale;
-  const turns = 4.5;
+  const radius = (layout.wide ? 0.6 : 0.75) * layout.scale;
+  const pitch = (7.0 / 4.5) * layout.scale;
+  const half = edgeX(layout, -0.6 - radius, 1 + EDGE_MARGIN);
   for (let i = 0; i < count; i += 1) {
-    const t = i / count;
-    const angle = t * Math.PI * 2 * turns;
+    const x = (i / count) * 2 * half - half;
+    const angle = (x / pitch) * Math.PI * 2;
     const jitter = (random() - 0.5) * 0.12;
-    out[i * 3] = (t - 0.5) * length;
+    out[i * 3] = x;
     out[i * 3 + 1] =
       Math.cos(angle) * (radius + jitter) -
-      1.4 * layout.scale * layout.shiftX +
+      1.75 * layout.scale * layout.shiftX +
       layout.shiftY;
     out[i * 3 + 2] = Math.sin(angle) * (radius + jitter) - 0.6;
   }
@@ -131,7 +188,7 @@ const coil: Builder = (count, random, layout) => {
     const angle = t * Math.PI * 2 * turns;
     const r = outer * (1 - t * 0.85);
     const [dx, dy] = tube(random, 0.06 * layout.scale);
-    out[i * 3] = Math.cos(angle) * r + dx - 1.9 * layout.shiftX;
+    out[i * 3] = Math.cos(angle) * r + dx - 1.9 * layout.columnX;
     out[i * 3 + 1] =
       Math.sin(angle) * r * 0.55 +
       dy -
@@ -142,39 +199,105 @@ const coil: Builder = (count, random, layout) => {
   return out;
 };
 
-const thread: Builder = (count, random, layout) => {
+const threadBuilder: Builder = (count, random, layout) => {
   const out = new Float32Array(count * 3);
-  const span = 9;
+  const top = edgeY(
+    layout,
+    -0.8,
+    1 + 2 * (1 - THREAD_WINDOW.end) + EDGE_MARGIN,
+  );
+  const bottom = edgeY(layout, -0.8, -1 - 2 * MAX_OFFSET - EDGE_MARGIN);
   for (let i = 0; i < count; i += 1) {
-    const t = random();
-    const y = (t - 0.5) * span;
+    const y = bottom + random() * (top - bottom);
     const [dx, dz] = tube(random, 0.05);
-    out[i * 3] =
-      Math.sin(y * 1.15) * 0.45 * layout.scale + dx + 1.6 * layout.shiftX;
-    out[i * 3 + 1] = y + layout.shiftY;
-    out[i * 3 + 2] = Math.cos(y * 0.8) * 0.3 + dz - 0.5;
+    const z = Math.cos(y * 0.8) * 0.3 + dz - 0.5;
+    const wave = Math.sin(y * 1.15);
+    out[i * 3] = layout.wide
+      ? (layout.threadX + layout.threadSway * wave) *
+          (CAMERA_Z - z) *
+          TAN *
+          layout.aspect +
+        dx
+      : wave * 0.45 * layout.scale + dx;
+    out[i * 3 + 1] = y;
+    out[i * 3 + 2] = z;
   }
   return out;
 };
 
 const builders: Builder[] = [knot, orbit, braid, rings, helix, coil];
 
-export function buildTargets(count: number, wide: boolean): TargetSet {
+export function sceneLayout({ width, height }: Viewport): Layout {
+  const aspect = width / Math.max(1, height);
+  if (width < 768) {
+    return {
+      wide: false,
+      columnX: 0,
+      shiftX: 0,
+      shiftY: 1.2,
+      scale: 0.6,
+      aspect,
+      threadX: 0,
+      threadSway: 0,
+    };
+  }
+  const content = Math.min(width, CONTENT_MAX) - CONTENT_GUTTER;
+  const gutter = (width - content) / 2;
+  const ratio = content / Math.max(1, height) / REFERENCE_RATIO;
+  return {
+    wide: true,
+    columnX: Math.min(1.2, Math.max(0.6, ratio)),
+    shiftX: 1,
+    shiftY: 0,
+    scale: 1,
+    aspect,
+    threadX: 1 - gutter / width,
+    threadSway: Math.min(
+      0.45 / ((CAMERA_Z + 0.5) * TAN * aspect),
+      (0.6 * gutter) / width,
+    ),
+  };
+}
+
+function centroid(points: Float32Array): Vec3 {
+  const sum: Vec3 = [0, 0, 0];
+  const count = points.length / 3;
+  for (let i = 0; i < points.length; i += 3) {
+    sum[0] += points[i];
+    sum[1] += points[i + 1];
+    sum[2] += points[i + 2];
+  }
+  return [sum[0] / count, sum[1] / count, sum[2] / count];
+}
+
+export function buildTargets(
+  count: number,
+  viewport: Viewport,
+  anchors: readonly (ScreenPoint | null)[] = [],
+): TargetSet {
   if (builders.length !== SCENE_STOPS) {
     throw new Error('scene: target builders must match section count');
   }
-  const layout: Layout = wide
-    ? { shiftX: 1, shiftY: 0, scale: 1 }
-    : { shiftX: 0, shiftY: 1.2, scale: 0.6 };
+  const layout = sceneLayout(viewport);
+  const toNdc = (point: ScreenPoint | null | undefined) =>
+    point
+      ? {
+          x: (2 * point.x) / viewport.width - 1,
+          y: 1 - (2 * point.y) / viewport.height,
+        }
+      : null;
   const positions = builders.map((build, i) =>
-    build(count, createRandom(1000 + i * 7919), layout),
+    build(count, createRandom(1000 + i * 7919), layout, toNdc(anchors[i])),
   );
+  const thread = threadBuilder(count, createRandom(777), layout, null);
   const seedRandom = createRandom(42);
   const seeds = new Float32Array(count);
   for (let i = 0; i < count; i += 1) seeds[i] = seedRandom();
   return {
     positions,
-    thread: thread(count, createRandom(777), layout),
+    thread,
     seeds,
+    pivots: positions.map(centroid),
+    threadPivot: centroid(thread),
   };
 }
