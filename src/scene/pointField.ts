@@ -33,6 +33,7 @@ const OCHRE = new Color('#c89b3c');
 
 const REFERENCE_AREA = 1512 * 982;
 const MAX_DENSITY = 2.5;
+const MORPH_STIFFNESS = 3.2;
 
 function densityFor({ width, height }: Viewport) {
   return Math.min(MAX_DENSITY, Math.max(1, (width * height) / REFERENCE_AREA));
@@ -189,6 +190,7 @@ export function createPointField({
 
   let last = performance.now();
   let smoothProgress = 0;
+  let progressVelocity = 0;
   let yaw = 0;
   let pitch = 0;
   let elapsed = 0;
@@ -209,7 +211,11 @@ export function createPointField({
     }
 
     const frame = readSceneFrame();
-    smoothProgress += (frame.value - smoothProgress) * Math.min(1, delta * 3);
+    progressVelocity +=
+      (MORPH_STIFFNESS * MORPH_STIFFNESS * (frame.value - smoothProgress) -
+        2 * MORPH_STIFFNESS * progressVelocity) *
+      delta;
+    smoothProgress += progressVelocity * delta;
 
     const u = material.uniforms;
     u.uProgress.value = smoothProgress;
