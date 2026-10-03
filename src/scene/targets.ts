@@ -182,17 +182,18 @@ const helix: Builder = (count, random, layout) => {
 const coil: Builder = (count, random, layout) => {
   const out = new Float32Array(count * 3);
   const turns = 4;
-  const outer = 2.1 * layout.scale;
+  const outer = 2.8 * layout.scale;
   for (let i = 0; i < count; i += 1) {
     const t = Math.sqrt(random());
     const angle = t * Math.PI * 2 * turns;
     const r = outer * (1 - t * 0.85);
     const [dx, dy] = tube(random, 0.06 * layout.scale);
-    out[i * 3] = Math.cos(angle) * r + dx - 1.9 * layout.columnX;
+    out[i * 3] =
+      Math.cos(angle) * r + dx - 1.9 * layout.columnX - 0.7 * layout.scale;
     out[i * 3 + 1] =
       Math.sin(angle) * r * 0.55 +
       dy -
-      1.15 * layout.scale * layout.shiftX +
+      1.55 * layout.scale * layout.shiftX +
       layout.shiftY;
     out[i * 3 + 2] = -1.6 + t * 1.8;
   }
