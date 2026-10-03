@@ -9,7 +9,11 @@ import {
   ShaderMaterial,
   WebGLRenderer,
 } from 'three';
-import { readSceneFrame, sceneProgress } from '@/lib/sceneProgress';
+import {
+  readSceneFrame,
+  sceneProgress,
+  sectionShift,
+} from '@/lib/sceneProgress';
 import {
   buildTargets,
   CAMERA_FOV,
@@ -69,6 +73,8 @@ export function createPointField({
   renderer.setClearColor(0x000000, 0);
   renderer.domElement.style.position = 'absolute';
   renderer.domElement.style.inset = '0';
+  renderer.domElement.style.width = '100%';
+  renderer.domElement.style.height = '100%';
   renderer.domElement.style.pointerEvents = 'none';
   container.appendChild(renderer.domElement);
 
@@ -160,7 +166,7 @@ export function createPointField({
 
     const u = material.uniforms;
     u.uProgress.value = smoothProgress;
-    u.uShift.value = frame.offset * 2;
+    u.uShift.value = sectionShift(frame, smoothProgress) * 2;
     u.uTime.value = elapsed;
     u.uOpacity.value = Math.min(1, u.uOpacity.value + delta * 0.8);
     u.uSplitY.value = frame.splitY;

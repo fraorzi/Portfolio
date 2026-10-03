@@ -1,3 +1,8 @@
+import { THREAD_WINDOW } from '@/lib/sceneProgress';
+
+const threadStart = THREAD_WINDOW.start.toFixed(3);
+const threadEnd = THREAD_WINDOW.end.toFixed(3);
+
 export const pointVertexShader = /* glsl */ `
   attribute vec3 aT1;
   attribute vec3 aT2;
@@ -23,8 +28,8 @@ export const pointVertexShader = /* glsl */ `
   vec3 viaThread(vec3 from, vec3 to, float k) {
     float f = clamp(uProgress - k, 0.0, 1.0);
     float s = aSeed * 0.14;
-    float toThread = smoothstep(0.04 + s, 0.42, f);
-    float toShape = smoothstep(0.58, 0.96 - s, f);
+    float toThread = smoothstep(0.04 + s, ${threadStart}, f);
+    float toShape = smoothstep(${threadEnd}, 0.96 - s, f);
     return mix(mix(from, aThread, toThread), to, toShape);
   }
 
@@ -54,7 +59,7 @@ export const pointVertexShader = /* glsl */ `
     gl_PointSize = size * uPixelRatio * (4.2 / max(0.5, -mv.z));
 
     float ndcY = gl_Position.y / max(0.0001, gl_Position.w);
-    float below = smoothstep(uSplitY + 0.015, uSplitY - 0.015, ndcY);
+    float below = 1.0 - smoothstep(uSplitY - 0.015, uSplitY + 0.015, ndcY);
     vTheme = mix(uThemeAbove, uThemeBelow, below);
 
     vSeed = aSeed;

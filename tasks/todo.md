@@ -132,3 +132,14 @@ Zmiany w `Navbar.tsx` (stałe `MOBILE_SIZE/WIDTH/STEP`, wysokość kontenera fil
 ### Review
 
 Przyczyna: skala treści (0.6-1.2) obejmowała cały mesh, więc na dużych ekranach linia i oplot kurczyły się razem z kształtami przy treści. Teraz `buildTargets(count, viewport)` skaluje tylko kształty przy treści, a linia, oplot i koniec helisy liczą zasięg z frustum na swojej głębokości, z zapasem na przesunięcie sekcji (`MAX_OFFSET`) i największy przechył (`TILT`). Liczba punktów: baza z tieru × powierzchnia / (1512×982), 1-2.5×, jasność punktu / √gęstość. Weryfikacja: model rzutowania dla 360×640 do 3440×1440, wszystkie kombinacje przechyłu i przesunięcia, zero przerw na krawędziach, nachodzenie na tekst maks. 1.3% (1440×700). Realny shader (render offscreen, 2560×1440, 59.5k punktów): oplot x 0-2559, linia y 0-1439 także przy przesunięciu 1.1 i przechyle, helisa do 1439.
+
+## Rozmiar canvasa, design scen i kształty przy sekcji (2026-10-03)
+
+- [x] Pas ciemnych cząsteczek pod krawędzią sekcji na MacBooku
+- [x] Mniej chowania kształtów, priorytet dla designu
+
+### Review
+
+Przyczyna pasa: canvas wyświetlał się w rozmiarze bufora (`setSize(..., false)` bez rozmiaru CSS, a `inset: 0` nie rozciąga canvasa), więc przy dpr > 1 cała scena była 1.5× za duża od lewego górnego rogu i podział koloru lądował 1.5× niżej niż krawędź. Poprawka: `width/height: 100%` na canvasie. Wcześniejsze testy czytały bufor WebGL, nie obraz na ekranie, dlatego tego nie złapały.
+
+Design: wracają oryginalne kształty i rozmiary (świat, rosną z ekranem), x kształtów idzie za kolumnami treści, linia/oplot/helisa od krawędzi do krawędzi. Kształt jedzie ze swoją sekcją także przy wjeździe (`sectionShift`), więc nie wisi nad tekstem w połowie scrolla. Helisa w Recent niżej i cieńsza (muska ostatni wiersz), stos pierścieni w Scope odrobinę niżej na desktopie. Weryfikacja: offscreen render tym samym shaderem + tła sekcji + prostokąty tekstu z DOM dla 1512×860, 2560×1440 i 390×844, w spoczynku i w trakcie wjazdu sekcji; zrzuty panelu w 60 fps przy granicy Scope/Recent w trakcie scrolla Lenisa.

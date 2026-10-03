@@ -34,6 +34,7 @@ export function measureSections(): Layout {
 }
 
 export const MAX_OFFSET = 0.55;
+export const THREAD_WINDOW = { start: 0.42, end: 0.58 };
 
 function clamp01(n: number, max = 1) {
   return Math.min(max, Math.max(0, n));
@@ -41,7 +42,7 @@ function clamp01(n: number, max = 1) {
 
 export type SceneFrame = {
   value: number;
-  offset: number;
+  offsets: number[];
   splitY: number;
   themeAbove: number;
   themeBelow: number;
@@ -49,7 +50,7 @@ export type SceneFrame = {
 
 const IDLE_FRAME: SceneFrame = {
   value: 0,
-  offset: 0,
+  offsets: [],
   splitY: 2,
   themeAbove: 1,
   themeBelow: 1,
@@ -76,12 +77,9 @@ export function computeFrame(
     value += clamp01((scrollY + vh - tops[k]) / vh);
   }
 
-  const current = Math.min(last, Math.floor(value));
-  const frac = value - current;
-  const scrolledPast = (k: number) =>
-    k > last ? 0 : clamp01((scrollY - tops[k]) / vh, MAX_OFFSET);
-  const offset =
-    scrolledPast(current) * (1 - frac) + scrolledPast(current + 1) * frac;
+  const offsets = tops.map((top) =>
+    Math.max(-1, Math.min(MAX_OFFSET, (scrollY - top) / vh)),
+  );
 
   const edges = tops.map((top, k) => ({
     top,
@@ -110,14 +108,25 @@ export function computeFrame(
   const screenY = (nearest.top - scrollY) / vh;
   if (screenY < -0.1 || screenY > 1.1) {
     const theme = nearest.top <= y ? nearest.below : nearest.above;
-    return { value, offset, splitY: 2, themeAbove: theme, themeBelow: theme };
+    return { value, offsets, splitY: 2, themeAbove: theme, themeBelow: theme };
   }
 
   return {
     value,
-    offset,
+    offsets,
     splitY: 1 - screenY * 2,
     themeAbove: nearest.above,
     themeBelow: nearest.below,
   };
+}
+
+export function sectionShift(frame: SceneFrame, progress: number) {
+  const index = Math.floor(progress);
+  const from = frame.offsets[index] ?? 0;
+  const to = frame.offsets[index + 1] ?? from;
+  const t = clamp01(
+    (progress - index - THREAD_WINDOW.start) /
+      (THREAD_WINDOW.end - THREAD_WINDOW.start),
+  );
+  return from + (to - from) * t * t * (3 - 2 * t);
 }
