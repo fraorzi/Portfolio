@@ -53,7 +53,7 @@ export function LoadingScreen({
           duration: INTRO_HOLD_MS / 1000,
           ease: [0.65, 0, 0.35, 1],
         }}
-        className="bg-primary-600 absolute bottom-0 left-0 h-px w-full origin-left"
+        className="bg-primary-600 absolute bottom-0 left-0 h-1 w-full origin-left"
       />
     </motion.div>
   );
