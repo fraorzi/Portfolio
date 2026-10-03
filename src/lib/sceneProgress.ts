@@ -51,7 +51,7 @@ export function measureSections(): Layout {
 }
 
 export const MAX_OFFSET = 0.55;
-export const MORPH_SPAN = 0.5;
+export const MORPH_SPAN = 0.8;
 export const THREAD_WINDOW = { start: 0.42, end: 0.58 };
 
 function clamp01(n: number, max = 1) {

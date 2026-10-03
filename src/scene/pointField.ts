@@ -34,7 +34,7 @@ const OCHRE = new Color('#c89b3c');
 const REFERENCE_AREA = 1512 * 982;
 const MAX_DENSITY = 2.5;
 const MORPH_STIFFNESS = 3.2;
-const MORPH_LEAD = 2 / MORPH_STIFFNESS;
+const MORPH_LEAD = 1 / MORPH_STIFFNESS;
 const MAX_PROGRESS_RATE = 3;
 
 function densityFor({ width, height }: Viewport) {
