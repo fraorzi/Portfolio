@@ -6,6 +6,42 @@
   NODE_VERSION = "22"
 
 [[redirects]]
+  from = "https://franciszek-orzechowski.com/*"
+  to = "https://franciszek-orzechowski.pl/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.franciszek-orzechowski.com/*"
+  to = "https://franciszek-orzechowski.pl/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://franciszekorzechowski.pl/*"
+  to = "https://franciszek-orzechowski.pl/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.franciszekorzechowski.pl/*"
+  to = "https://franciszek-orzechowski.pl/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://franciszekorzechowski.com/*"
+  to = "https://franciszek-orzechowski.pl/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.franciszekorzechowski.com/*"
+  to = "https://franciszek-orzechowski.pl/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
